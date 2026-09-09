@@ -50,6 +50,30 @@
 
   .panel{background:var(--f1);border:1px solid var(--edge);padding:16px}
 
+  /* 저장이 안 될 때 */
+  .warn{display:none;margin:16px 0 0;padding:12px 14px 14px;--cut:14px;color:#FFF1EE;
+        background:linear-gradient(104deg,#C0503F 0 38%,#A33F30 38% 70%,#872F23 70% 100%);
+        clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),
+                   calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+  .warn.show{display:block}
+  .warn b{display:block;font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+  .warn span{display:block;font-size:12.5px;margin-top:5px;line-height:1.65;opacity:.95}
+  .warn .btn-sub{margin-top:11px;background:rgba(255,255,255,.93);border-color:transparent;
+                 color:#872F23;font-weight:700}
+  .warn .btn-sub:hover{background:#fff}
+
+  /* 저장 상태 진단 */
+  .diag{margin:6px 0 0}
+  .diag .d{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+           padding:7px 0;border-bottom:1px solid var(--edge)}
+  .diag .d i{font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:11.5px;
+             color:var(--ink-2);letter-spacing:.04em}
+  .diag .d b{font-size:13.5px;font-weight:600;text-align:right}
+  .diag .d b.ok{color:var(--ok)}
+  .diag .d b.ng{color:var(--po)}
+  .diag .addr{margin:8px 0 0;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+              color:var(--ink-3);word-break:break-all;line-height:1.55}
+
   /* 기간 한정 프로모션 */
   .promo{display:none;margin:16px 0 0;padding:12px 14px 13px;--cut:14px;
          color:#FDF3E4;
@@ -534,6 +558,8 @@
   <p class="logo-en">STEEL GRADE GACHA</p>
   <div class="rule"></div>
 </header>
+
+<div class="warn" id="storeWarn"></div>
 
 <div class="promo" id="promoBar"></div>
 
@@ -1753,10 +1779,33 @@ function load(){
   try{ applySaved(JSON.parse(r)); }
   catch(e){ loadFailed = true; }             /* 값이 깨졌다면 덮어쓰지 않습니다 */
 }
+/* 쓰고 끝이 아니라 되읽어 확인합니다. 조용히 버리는 브라우저가 여기서 잡힙니다. */
+var storeWarn = "";
 function save(){
   if(loadFailed || saveHold) return;
-  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  var raw = JSON.stringify(S), was = storeWarn;
+  try{
+    localStorage.setItem(KEY, raw);
+    storeWarn = (localStorage.getItem(KEY) === raw) ? ""
+              : "브라우저가 저장을 받아 주지 않습니다";
+  }catch(e){
+    storeWarn = (e && e.name === "QuotaExceededError")
+      ? "저장 공간이 가득 찼습니다"
+      : "이 브라우저에서 저장이 막혀 있습니다";
+  }
+  /* 20초 갱신을 기다리지 않고 그 자리에서 알립니다 */
+  if(storeWarn !== was) renderStoreWarn();
   mirrorPut();
+}
+
+/* 지금 어떤 방식으로 열려 있는지 */
+function runMode(){
+  if(location.protocol === "file:") return "내려받은 파일(file://)";
+  var sa = false;
+  try{ sa = window.matchMedia("(display-mode: standalone)").matches ||
+            window.matchMedia("(display-mode: window-controls-overlay)").matches ||
+            navigator.standalone === true; }catch(e){}
+  return sa ? "설치된 앱" : "브라우저 탭";
 }
 
 /* IndexedDB 사본. 실패해도 앱은 그대로 돌아갑니다. */
@@ -2015,6 +2064,75 @@ function watchReady(){
     renderBell();
   }
   wasReady = r;
+}
+
+/* ── 저장이 안 될 때 알리기 ────────────────────────
+   조용히 실패하면 사람은 며칠 뒤에야 압니다. 그래서 눈에 보이게 세워 둡니다. */
+function renderStoreWarn(){
+  var el = document.getElementById("storeWarn");
+  if(!el) return;
+  var msg = "";
+  if(loadFailed) msg = "저장된 값을 읽지 못해, 덮어쓰지 않으려고 저장을 멈춰 두었습니다.";
+  else if(storeWarn) msg = storeWarn + ".";
+  else if(location.protocol === "file:")
+    msg = "내려받은 파일로 열면 진행이 저장되지 않거나 다른 기기와 따로 놉니다.";
+  if(!msg){ el.className = "warn"; el.innerHTML = ""; return; }
+  el.className = "warn show";
+  el.innerHTML =
+    '<b>진행이 저장되지 않고 있습니다</b>' +
+    '<span>' + msg + ' 지금 창을 닫으면 오늘 한 것이 사라집니다. ' +
+    '백업 코드를 받아 두시고, 되도록 웹 주소로 열어 주세요.</span>' +
+    '<button class="btn-sub cut" id="warnGo" type="button">진행 백업 · 복원 열기</button>';
+  document.getElementById("warnGo").addEventListener("click", openBackup);
+}
+
+/* IndexedDB에 실제로 써 보고 되읽어 봅니다 */
+function idbProbe(cb){
+  idbOpen(function(db){
+    if(!db){ cb("막힘"); return; }
+    var k = KEY + "_probe", v = String(Date.now());
+    try{
+      var tx = db.transaction("save", "readwrite");
+      tx.objectStore("save").put(v, k);
+      tx.onerror = function(){ cb("쓰기 실패"); };
+      tx.onabort = function(){ cb("쓰기 취소됨"); };
+      tx.oncomplete = function(){
+        try{
+          var rq = db.transaction("save", "readonly").objectStore("save").get(k);
+          rq.onsuccess = function(){
+            cb(rq.result === v ? "정상" : "되읽히지 않음");
+            try{ db.transaction("save","readwrite").objectStore("save")["delete"](k); }catch(e){}
+          };
+          rq.onerror = function(){ cb("읽기 실패"); };
+        }catch(e){ cb("읽기 실패"); }
+      };
+    }catch(e){ cb("막힘"); }
+  });
+}
+
+/* 백업 화면에 띄우는 저장 상태. 어디가 막혔는지 사람이 바로 읽게 합니다. */
+function storeDiag(cb){
+  var out = { mode: runMode(), where: location.origin + location.pathname,
+              ls: "?", idb: "확인 중", persist: "확인 중" };
+  try{
+    var k = KEY + "_probe", v = String(Date.now());
+    localStorage.setItem(k, v);
+    out.ls = (localStorage.getItem(k) === v) ? "정상" : "되읽히지 않음";
+    localStorage.removeItem(k);
+  }catch(e){ out.ls = "막힘 (" + ((e && e.name) || "오류") + ")"; }
+
+  var left = 2, done = function(){ if(--left === 0) cb(out); };
+  var t = setTimeout(function(){ left = 1; done(); }, 3000);   /* 끝내 답이 없어도 화면은 뜨게 */
+
+  try{
+    if(navigator.storage && navigator.storage.persisted){
+      navigator.storage.persisted().then(function(p){
+        out.persist = p ? "받음" : "못 받음"; done();
+      })["catch"](function(){ out.persist = "확인 실패"; done(); });
+    } else { out.persist = "지원 안 함"; done(); }
+  }catch(e){ out.persist = "지원 안 함"; done(); }
+
+  idbProbe(function(r){ out.idb = r; clearTimeout(t); done(); });
 }
 
 /* ── 기간 한정 프로모션 화면 ───────────────────────
@@ -2444,6 +2562,7 @@ function refresh(){
   tick();
   renderBell();
   renderBackupWhen();
+  renderStoreWarn();
   renderPromo();
   renderOrder();
   renderDex();
@@ -2835,6 +2954,10 @@ function openBackup(){
       Object.keys(S.items).length + '종 · 스크랩 ' + S.scrap + '장이 담겨 있습니다.</p>' +
 
     '<div class="sep"></div>' +
+    '<span class="lab">저장 상태</span>' +
+    '<div class="diag" id="bkDiag"><div class="d"><i>확인 중</i><b>…</b></div></div>' +
+
+    '<div class="sep"></div>' +
     '<span class="lab">코드로 되돌리기</span>' +
     '<textarea id="bkIn" placeholder="받아 둔 백업 코드를 붙여 넣으세요" spellcheck="false"></textarea>' +
     '<button class="btn-sub cut" id="bkLoad" type="button">이 코드로 되돌리기</button>' +
@@ -2843,6 +2966,23 @@ function openBackup(){
 
   backupModal.classList.add("show");
   document.body.style.overflow = "hidden";
+
+  storeDiag(function(d){
+    var host = document.getElementById("bkDiag");
+    if(!host) return;
+    var row = function(name, val){
+      var ok = (val === "정상" || val === "받음");
+      var bad = /막힘|실패|안 함|되읽히지|취소|없음/.test(val);
+      return '<div class="d"><i>' + name + '</i><b class="' +
+             (ok ? "ok" : (bad ? "ng" : "")) + '">' + val + '</b></div>';
+    };
+    host.innerHTML =
+      row("실행 방식", d.mode) +
+      row("localStorage", d.ls) +
+      row("IndexedDB 사본", d.idb) +
+      row("영구 저장 허가", d.persist) +
+      '<p class="addr">' + d.where + '</p>';
+  });
 
   var res = document.getElementById("bkRes");
   document.getElementById("bkCopy").addEventListener("click", function(){
