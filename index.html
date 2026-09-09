@@ -2269,6 +2269,17 @@ var LVG = {
 var LVNAME = {1:"일반제품", 2:"시장기반전략제품", 3:"기술기반전략제품", 4:"미래수요제품"};
 var LVRATE = {1:0.45, 2:0.35, 3:0.15, 4:0.05};
 
+/* 같은 등급 안에서도 유난히 귀한 것들. 1이 기본이고 작을수록 덜 나옵니다.
+   등급별 확률(LVRATE)은 건드리지 않으므로, 여기서 덜어낸 몫은 같은 등급의
+   다른 카드로 갑니다.                                                   */
+var RARE = {
+  "poo-PHS":     0.5,   /* 후열처리강 */
+  "ga-1470H":    0.5,   /* Al-Si 핫프레스포밍 */
+  "ssial-1180Y": 0.5,   /* 냉연 1180 */
+  "ga-1180Y":    0.5    /* 도금 1180 */
+};
+function rareOf(id){ return RARE[id] || 1; }
+
 function lvOf(c){
   for(var k=4;k>=1;k--) if(LVG[k].indexOf(c.g) >= 0) return k;
   return 1;
@@ -2301,8 +2312,18 @@ function pickFrom(b){
     r -= LVRATE[avail[i]];
     if(r <= 0) break;
   }
-  var list = b[avail[i]];
-  return list[Math.floor(Math.random() * list.length)];
+  return pickIn(b[avail[i]]);
+}
+/* 등급 안에서 한 장. 균등이 아니라 희소도를 얹어 고릅니다. */
+function pickIn(list){
+  var tot = 0, i;
+  for(i=0;i<list.length;i++) tot += rareOf(list[i]);
+  var r = Math.random() * tot;
+  for(i=0;i<list.length-1;i++){
+    r -= rareOf(list[i]);
+    if(r <= 0) break;
+  }
+  return list[i];
 }
 function weightedPick(){ return pickFrom(bucketize(POOL)) || POOL[0]; }
 
