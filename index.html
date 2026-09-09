@@ -50,6 +50,47 @@
 
   .panel{background:var(--f1);border:1px solid var(--edge);padding:16px}
 
+  /* 기간 한정 프로모션 */
+  .promo{display:none;margin:16px 0 0;padding:12px 14px 13px;--cut:14px;
+         color:#FDF3E4;
+         background:linear-gradient(104deg,#B9752A 0 38%,#9A5D1E 38% 70%,#7C4A14 70% 100%);
+         clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),
+                   calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+  .promo.show{display:block}
+  .promo .pl{display:block;font-family:"IBM Plex Mono",monospace;font-size:10px;
+             letter-spacing:.24em;font-weight:600;color:#F7C77E}
+  .promo .pt{display:block;font-size:15px;font-weight:700;margin-top:4px;letter-spacing:-.01em}
+  .promo .pd{display:block;font-size:12.5px;margin-top:4px;opacity:.93;line-height:1.6}
+  .promo .pc{display:block;font-family:"IBM Plex Mono",monospace;font-size:12px;margin-top:8px;
+             color:#F7C77E;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+  .promo.soon{background:linear-gradient(104deg,#4A5765 0 38%,#3B4753 38% 70%,#2E3843 70% 100%)}
+  .promo.soon .pl,.promo.soon .pc{color:#9FC8EA}
+
+  /* 00시 안내 */
+  #promoModal .box{background:#7C4A14}
+  #promoModal .x{background:rgba(255,255,255,.16);color:#FDF3E4}
+  .pm{padding:22px 18px 20px;text-align:center;color:#FDF3E4;
+      background:linear-gradient(158deg,#C07C2D 0 40%,#9A5D1E 40% 72%,#7C4A14 72% 100%)}
+  .pm .k{display:block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+         letter-spacing:.26em;font-weight:600;color:#F7C77E}
+  .pm h3{margin:9px 0 0;font-size:23px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
+  .pm .sub{margin:9px 0 0;font-size:13px;opacity:.93;line-height:1.7}
+  .pm .rows{margin:17px 0 0;display:flex;flex-direction:column;gap:8px;text-align:left;
+            border-top:0}
+  .pm .r{display:flex;align-items:center;justify-content:space-between;gap:10px;--cut:10px;
+         border-bottom:0;background:rgba(255,255,255,.13);padding:11px 13px;clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),
+                   calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+  .pm .r b{font-size:13.5px;font-weight:700}
+  .pm .r span{font-family:"IBM Plex Mono",monospace;font-size:13.5px;color:#FBE0B4;
+              font-weight:600;white-space:nowrap}
+  .pm .r span i{font-style:normal;opacity:.55;text-decoration:line-through;
+                margin-right:7px;font-weight:400}
+  .pm .when{margin:15px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11.5px;
+            color:#F7C77E;letter-spacing:.04em;line-height:1.6}
+  .pm .btn-sub{margin-top:16px;background:rgba(255,255,255,.92);border-color:transparent;
+               color:#7C4A14;font-weight:700}
+  .pm .btn-sub:hover{background:#fff}
+
   .status{display:flex;gap:8px;margin:16px 0 12px}
   .st{flex:1;background:var(--f2);border:1px solid var(--edge);padding:11px 8px;text-align:center;
       --cut:9px}
@@ -324,6 +365,7 @@
          border-bottom:1px dashed #BFC7B7;padding-bottom:8px;margin-bottom:10px}
   .ohead .ol{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.28em;
              font-weight:600;color:var(--ochre)}
+  .ohead .ol em{font-style:normal;letter-spacing:.06em;color:#9A5D1E;margin-left:7px}
   .ohead .od{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);
              font-variant-numeric:tabular-nums}
   .ofrom{margin:0;font-size:11.5px;font-family:"IBM Plex Mono",monospace;color:var(--ink-3);
@@ -493,6 +535,8 @@
   <div class="rule"></div>
 </header>
 
+<div class="promo" id="promoBar"></div>
+
 <div class="status">
   <div class="st cut"><div class="n gold" id="stChars">0 / 0</div><div class="l">캐릭터</div></div>
   <div class="st cut"><div class="n" id="stItems">0 / 0</div><div class="l">아이템</div></div>
@@ -537,6 +581,13 @@
 
 <div class="modal" id="pickModal" role="dialog" aria-modal="true" aria-label="고객 요구 회신">
   <div class="box" id="pickBox"></div>
+</div>
+
+<div class="modal" id="promoModal" role="dialog" aria-modal="true" aria-label="기간 한정 안내">
+  <div class="box">
+    <button class="x" type="button" id="promoX" aria-label="닫기">&times;</button>
+    <div class="pm" id="promoBox"></div>
+  </div>
 </div>
 
 <div class="modal" id="backupModal" role="dialog" aria-modal="true" aria-label="진행 백업과 복원">
@@ -1643,9 +1694,30 @@ var POOL = Object.keys(IMG).filter(function(k){ return IMG[k]; });
 var KEY = "steelgrade_gacha_v1";
 var S = { owned:{}, last:"", extra:0, quizDay:"", items:{}, orderDay:"", orderKey:"",
           scrap:0, pending:"", pullAt:0, quizAt:0, quizUsed:0, bell:false, belledAt:-1,
-          backupAt:0 };
+          backupAt:0, orderDone:0, promoSeen:"", promoDone:"" };
 var SCRAP_LV3 = 5, SCRAP_LV4 = 10;
 var QUIZ_MAX = 3;   /* 퀴즈로 얻을 수 있는 뽑기는 24시간에 세 번까지 */
+var ORDER_MAX = 1;  /* 고객 요구는 하루 한 건 */
+
+/* ── 기간 한정 프로모션 ─────────────────────────────
+   기기 시계에 맡기면 시간대가 다른 사람마다 다른 24시간이 됩니다. 그래서
+   한국시간 00시를 UTC로 못 박아 둡니다(KST = UTC+9). 창이 닫히면 코드를
+   건드리지 않아도 저절로 평소대로 돌아갑니다.                          */
+var PROMO = {
+  key:  "2026-09-10",
+  from: Date.UTC(2026, 8,  9, 15, 0, 0),   /* 2026-09-10 00:00 KST */
+  to:   Date.UTC(2026, 8, 10, 15, 0, 0),   /* 2026-09-11 00:00 KST */
+  name: "하루 한정 증산",
+  quizMax: 5,      /* 퀴즈 3회 → 5회 */
+  orderMax: 2      /* 고객 요구 1건 → 2건 */
+};
+function promoOn(){ var n = Date.now(); return n >= PROMO.from && n < PROMO.to; }
+function promoSoon(){ return Date.now() < PROMO.from; }
+function promoLeft(){ return Math.max(0, PROMO.to - Date.now()); }
+function promoIn(){ return Math.max(0, PROMO.from - Date.now()); }
+/* 이 두 함수만 보고 판단합니다. 상수를 직접 쓰는 곳이 없어야 원복이 확실합니다. */
+function quizMax(){ return promoOn() ? PROMO.quizMax : QUIZ_MAX; }
+function orderMax(){ return promoOn() ? PROMO.orderMax : ORDER_MAX; }
 
 function today(){ var d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
 /* ── 진행 저장 ─────────────────────────────────────
@@ -1668,6 +1740,7 @@ function applySaved(p){
   S.pullAt=p.pullAt||0; S.quizAt=p.quizAt||0; S.quizUsed=p.quizUsed||0;
   S.bell=!!p.bell; S.belledAt=(typeof p.belledAt==="number")?p.belledAt:-1;
   S.backupAt=p.backupAt||0;
+  S.orderDone=p.orderDone||0; S.promoSeen=p.promoSeen||""; S.promoDone=p.promoDone||"";
 }
 function hasProgress(){
   return Object.keys(S.owned).length > 0 || S.scrap > 0 || Object.keys(S.items).length > 0;
@@ -1784,7 +1857,7 @@ function makeCode(){
     i:items,
     s:S.scrap, x:S.extra,
     p:S.pullAt, q:S.quizAt, u:S.quizUsed,
-    od:S.orderDay, ok:S.orderKey
+    od:S.orderDay, ok:S.orderKey, on:S.orderDone
   };
   var raw = JSON.stringify(pack);
   return "SGG1." + btoa(unescape(encodeURIComponent(raw)))
@@ -1808,7 +1881,7 @@ function applyCode(pack){
   S.owned = owned; S.items = items;
   S.scrap = pack.s || 0; S.extra = pack.x || 0;
   S.pullAt = pack.p || 0; S.quizAt = pack.q || 0; S.quizUsed = pack.u || 0;
-  S.orderDay = pack.od || ""; S.orderKey = pack.ok || "";
+  S.orderDay = pack.od || ""; S.orderKey = pack.ok || ""; S.orderDone = pack.on || 0;
   S.pending = "";
   loadFailed = false;            /* 사람이 직접 되돌린 값이니 다시 저장합니다 */
   save();
@@ -1821,7 +1894,7 @@ function readyIn(at){ return Math.max(0, (at || 0) + DAY - Date.now()); }
 function pullReady(){ return readyIn(S.pullAt) === 0; }
 /* 퀴즈는 첫 정답 시각부터 24시간이 한 판. 그 안에서 세 번까지 받습니다. */
 function quizWindowOpen(){ return S.quizAt && readyIn(S.quizAt) > 0; }
-function quizLeft(){ return quizWindowOpen() ? Math.max(0, QUIZ_MAX - S.quizUsed) : QUIZ_MAX; }
+function quizLeft(){ return quizWindowOpen() ? Math.max(0, quizMax() - S.quizUsed) : quizMax(); }
 function quizReady(){ return quizLeft() > 0; }
 /* 하루 최대 네 번 — 기본 한 번 + 퀴즈 세 번 */
 function pullsLeft(){ return (pullReady() ? 1 : 0) + S.extra; }
@@ -1853,7 +1926,7 @@ function tick(){
   qb.innerHTML = ql > 0
     ? '<span class="bt">철강 퀴즈 · 오늘 '+ql+'회 남음</span>' +
       '<span class="bw">5문제 다 맞추면 뽑기 +1</span>'
-    : '<span class="bt">퀴즈 '+QUIZ_MAX+'회 다 썼습니다</span>' +
+    : '<span class="bt">오늘 퀴즈를 다 썼습니다</span>' +
       '<span class="bw">'+fmtWhen(S.quizAt)+' 갱신</span>';
 }
 
@@ -1942,6 +2015,116 @@ function watchReady(){
     renderBell();
   }
   wasReady = r;
+}
+
+/* ── 기간 한정 프로모션 화면 ───────────────────────
+   창이 열리고 닫히는 그 시각에 딱 맞춰 한 번 깨우고, 평소에는 20초 갱신에
+   얹혀 갑니다. 끝나면 배너가 사라지고 횟수도 저절로 평소대로 돌아갑니다. */
+function fmtSpan(ms){
+  var m = Math.ceil(ms / 60000), h = Math.floor(m / 60);
+  /* 하루짜리 행사라 「1일 0시간」보다 「24시간 0분」이 읽기 낫습니다 */
+  return h >= 1 ? h + "시간 " + (m % 60) + "분" : m + "분";
+}
+function promoWhen(){
+  var f = function(t){
+    var d = new Date(t), h = d.getHours(), m = d.getMinutes();
+    return (d.getMonth()+1) + "월 " + d.getDate() + "일 " +
+           (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
+  };
+  return f(PROMO.from) + " ~ " + f(PROMO.to);
+}
+
+function renderPromo(){
+  var el = document.getElementById("promoBar");
+  if(!el) return;
+  if(promoOn()){
+    el.className = "promo show";
+    el.innerHTML =
+      '<span class="pl">LIMITED · 24H</span>' +
+      '<span class="pt">' + PROMO.name + ' 진행 중</span>' +
+      '<span class="pd">철강 퀴즈 ' + PROMO.quizMax + '회 · 고객 요구 하루 ' +
+        PROMO.orderMax + '건. 오늘만입니다.</span>' +
+      '<span class="pc">남은 시간 ' + fmtSpan(promoLeft()) + '</span>';
+  } else if(promoSoon()){
+    el.className = "promo soon show";
+    el.innerHTML =
+      '<span class="pl">COMING · 24H</span>' +
+      '<span class="pt">' + PROMO.name + ' 예고</span>' +
+      '<span class="pd">퀴즈 ' + QUIZ_MAX + '회 → ' + PROMO.quizMax + '회, 고객 요구 ' +
+        ORDER_MAX + '건 → ' + PROMO.orderMax + '건. 딱 하루입니다.</span>' +
+      '<span class="pc">' + promoWhen() + ' · ' + fmtSpan(promoIn()) + ' 뒤 시작</span>';
+  } else {
+    el.className = "promo";
+    el.innerHTML = "";
+  }
+}
+
+var promoModal, promoBox, promoLast = null;
+function closePromo(){
+  promoModal.classList.remove("show");
+  document.body.style.overflow = "";
+  promoBox.innerHTML = "";
+  if(promoLast && promoLast.focus) promoLast.focus();
+}
+function openPromo(){
+  promoLast = document.activeElement;
+  promoBox.innerHTML =
+    '<span class="k">LIMITED · 24H</span>' +
+    '<h3>' + PROMO.name + '<br>오늘 하루만</h3>' +
+    '<p class="sub">오늘 하루 철강 퀴즈와 고객 요구가 늘었습니다.<br>' +
+      '내일 00시에 평소대로 돌아갑니다.</p>' +
+    '<div class="rows">' +
+      '<div class="r"><b>철강 퀴즈</b><span><i>' + QUIZ_MAX + '회</i>' + PROMO.quizMax + '회</span></div>' +
+      '<div class="r"><b>고객 요구</b><span><i>하루 ' + ORDER_MAX + '건</i>하루 ' + PROMO.orderMax + '건</span></div>' +
+    '</div>' +
+    '<p class="when">' + promoWhen() + '<br>남은 시간 ' + fmtSpan(promoLeft()) + '</p>' +
+    '<button class="btn-sub cut" id="promoGo" type="button">확인</button>';
+  promoModal.classList.add("show");
+  document.body.style.overflow = "hidden";
+  document.getElementById("promoGo").addEventListener("click", closePromo);
+  document.getElementById("promoGo").focus();
+}
+
+/* 알림을 켜 둔 사람에게는 시작하는 그 시각에 한 번 알립니다 */
+function promoBell(){
+  if(!bellOn()) return;
+  var opt = { body: PROMO.name + " 시작. 퀴즈 " + PROMO.quizMax + "회, 고객 요구 " +
+                    PROMO.orderMax + "건. 오늘 하루만입니다.",
+              icon:"icon-192.png", badge:"icon-192.png", tag:"sgg-promo", renotify:true };
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(function(r){
+        r.showNotification("스틸 그레이드 가챠", opt);
+      }).catch(function(){ try{ new Notification("스틸 그레이드 가챠", opt); }catch(e){} });
+    } else { new Notification("스틸 그레이드 가챠", opt); }
+  }catch(e){}
+}
+
+var promoTimer = null;
+function armPromo(){
+  clearTimeout(promoTimer);
+  var n = Date.now(), ms = promoSoon() ? PROMO.from - n : (promoOn() ? PROMO.to - n : 0);
+  if(ms > 0 && ms < 2147483000){
+    promoTimer = setTimeout(function(){ checkPromo(); refresh(); armPromo(); }, ms + 1200);
+  }
+}
+
+function checkPromo(){
+  if(promoOn()){
+    if(S.promoSeen !== PROMO.key){
+      S.promoSeen = PROMO.key; save();
+      openPromo();
+      promoBell();
+    }
+  } else if(Date.now() >= PROMO.to){
+    /* 참여했던 사람에게만, 끝났다는 것을 한 번 알립니다 */
+    if(S.promoSeen === PROMO.key && S.promoDone !== PROMO.key){
+      S.promoDone = PROMO.key; save();
+      showToast("퀴즈 " + QUIZ_MAX + "회, 고객 요구 하루 " + ORDER_MAX +
+                "건으로 돌아갑니다.", "한정 기간이 끝났습니다");
+    }
+  }
+  renderPromo();
 }
 
 function fmtWhen(at){
@@ -2047,16 +2230,35 @@ function openOrders(){
   });
 }
 
-function todaysOrder(){
+/* 그날 몇 번째 요구인지에 따라 한 칸씩 밀어 고릅니다. 같은 날 두 건이
+   같은 항목으로 겹치지 않습니다. */
+function pickOrder(){
   var list = openOrders();
-  var cur = S.orderKey ? findOrder(S.orderKey) : null;
-  var stillValid = cur && (S.items[cur.item] || fitOwned(cur.item).length > 0);
-  if(S.orderDay !== today() || !stillValid){
-    S.orderDay = today();
-    S.orderKey = list.length ? list[dayHash() % list.length].item : "";
-    save();
+  if(!list.length) return "";
+  return list[(dayHash() + S.orderDone) % list.length].item;
+}
+
+function todaysOrder(){
+  if(S.orderDay !== today()){
+    S.orderDay = today(); S.orderDone = 0; S.orderKey = pickOrder(); save();
   }
-  return S.orderKey ? findOrder(S.orderKey) : null;
+  var cur = S.orderKey ? findOrder(S.orderKey) : null;
+  /* 이미 대응한 요구라면, 오늘 몫이 남아 있을 때만 다음 요구를 꺼냅니다 */
+  if(cur && S.items[cur.item] && S.orderDone < orderMax()){
+    S.orderKey = pickOrder(); save();
+    cur = S.orderKey ? findOrder(S.orderKey) : null;
+  }
+  /* 가진 소재로는 걸 수 없게 된 요구면 다시 고릅니다 */
+  if(cur && !S.items[cur.item] && fitOwned(cur.item).length === 0){
+    S.orderKey = pickOrder(); save();
+    cur = S.orderKey ? findOrder(S.orderKey) : null;
+  }
+  if(!S.orderKey){
+    S.orderKey = pickOrder();
+    if(S.orderKey) save();
+    cur = S.orderKey ? findOrder(S.orderKey) : null;
+  }
+  return cur;
 }
 
 function renderOrder(){
@@ -2071,7 +2273,11 @@ function renderOrder(){
   }
   var it = findItem(o.item), got = !!S.items[o.item];
   var body =
-    '<div class="ohead"><span class="ol">고객 요구</span><span class="od">'+today()+'</span></div>'+
+    '<div class="ohead"><span class="ol">고객 요구'+
+      (orderMax() > 1
+        ? '<em>오늘 '+Math.min(S.orderDone + (got ? 0 : 1), orderMax())+' / '+orderMax()+'건</em>'
+        : '')+
+    '</span><span class="od">'+today()+'</span></div>'+
     '<p class="ofrom">'+o.from+'</p>'+
     '<p class="oask">"'+o.ask+'"</p>';
   if(got){
@@ -2148,7 +2354,7 @@ function openPick(){
 function judge(key, btn){
   var o = todaysOrder(), res = document.getElementById("pkres"), i, all;
   if(key === o.item){
-    S.items[o.item] = 1; save();
+    S.items[o.item] = 1; S.orderDone++; save();
     btn.classList.add("right");
     all = document.querySelectorAll("#tggrid .tg");
     for(i=0;i<all.length;i++) all[i].disabled = true;
@@ -2238,6 +2444,7 @@ function refresh(){
   tick();
   renderBell();
   renderBackupWhen();
+  renderPromo();
   renderOrder();
   renderDex();
   renderItems();
@@ -2411,7 +2618,7 @@ function renderQ(){
       /* 창이 닫혀 있으면 지금부터 24시간짜리 새 판을 연다 */
       if(!quizWindowOpen()){ S.quizAt = Date.now(); S.quizUsed = 0; }
       S.quizUsed++;
-      S.extra = Math.min(S.extra + 1, QUIZ_MAX);   /* 하루 네 번을 넘겨 쌓이지 않게 */
+      S.extra = Math.min(S.extra + 1, quizMax());   /* 그날 몫을 넘겨 쌓이지 않게 */
     }
     save();
     var left = quizLeft();
@@ -2547,6 +2754,7 @@ document.getElementById("quizX").addEventListener("click", closeQuiz);
 document.addEventListener("keydown", function(e){
   if(e.key !== "Escape") return;
   if(quizModal.classList.contains("show")) closeQuiz();
+  else if(promoModal.classList.contains("show")) closePromo();
   else if(backupModal.classList.contains("show")) closeBackup();
   else if(pickModal.classList.contains("show")) closePick();
   else if(modal.classList.contains("show")) closeCard();
@@ -2701,7 +2909,7 @@ document.getElementById("btnReset").addEventListener("click", function(){
   b.classList.remove("arm"); b.textContent = "진행 초기화";
   S = { owned:{}, last:"", extra:0, quizDay:"", items:{}, orderDay:"", orderKey:"",
         scrap:0, pending:"", pullAt:0, quizAt:0, quizUsed:0, bell:S.bell, belledAt:-1,
-        backupAt:0 };
+        backupAt:0, orderDone:0, promoSeen:S.promoSeen, promoDone:S.promoDone };
   loadFailed = false; save();
   document.getElementById("pullBox").classList.remove("show");
   if(quizModal.classList.contains("show")) closeQuiz();
@@ -2712,6 +2920,11 @@ backupModal = document.getElementById("backupModal");
 backupBox = document.getElementById("backupBox");
 backupModal.addEventListener("click", function(e){ if(e.target === backupModal) closeBackup(); });
 document.getElementById("backupX").addEventListener("click", closeBackup);
+
+promoModal = document.getElementById("promoModal");
+promoBox = document.getElementById("promoBox");
+promoModal.addEventListener("click", function(e){ if(e.target === promoModal) closePromo(); });
+document.getElementById("promoX").addEventListener("click", closePromo);
 
 load();
 /* 화면을 그리는 것만으로 save()가 불립니다. 사본을 확인하기 전에는
@@ -2728,18 +2941,23 @@ bootRestore(needRestore, function(){
   if(!loadFailed) mirrorPut();   /* 사본이 없던 사람에게도 한 벌 만들어 둡니다 */
   wasReady = pullReady() && !!S.pullAt;
   armBell();
+  checkPromo();
+  armPromo();
 });
 
 /* 남은 시간이 흘러가는 걸 화면에도 반영합니다 */
 setInterval(function(){
   var wasP = !document.getElementById("btnPull").disabled;
   var wasQ = !document.getElementById("btnQuiz").disabled;
+  var wasPromo = promoOn();
   tick();
   watchReady();
-  if((!wasP && pullsLeft() > 0) || (!wasQ && quizReady())) refresh();
+  renderPromo();
+  checkPromo();
+  if((!wasP && pullsLeft() > 0) || (!wasQ && quizReady()) || wasPromo !== promoOn()) refresh();
 }, 20000);
 document.addEventListener("visibilitychange", function(){
-  if(!document.hidden){ refresh(); watchReady(); armBell(); }
+  if(!document.hidden){ refresh(); watchReady(); armBell(); checkPromo(); armPromo(); }
 });
 </script>
 <style>
