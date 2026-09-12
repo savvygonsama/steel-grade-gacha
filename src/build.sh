@@ -71,6 +71,18 @@ pair __I7__ "$IT/iron.png"      image/png
 pair __I8__ "$IT/spark.png"     image/png
 pair __I9__ "$IT/hourglass.png" image/png
 
+# 타래 — 선재 열 종
+pair __W1__  "$IMG/wr_swrm.jpg"  image/jpeg
+pair __W2__  "$IMG/wr_bic.jpg"   image/jpeg
+pair __W3__  "$IMG/wr_swry.jpg"  image/jpeg
+pair __W4__  "$IMG/wr_swrh.jpg"  image/jpeg
+pair __W5__  "$IMG/wr_cord.jpg"  image/jpeg
+pair __W6__  "$IMG/wr_chq.jpg"   image/jpeg
+pair __W7__  "$IMG/wr_suj.jpg"   image/jpeg
+pair __W8__  "$IMG/wr_spr.jpg"   image/jpeg
+pair __W9__  "$IMG/wr_vlv.jpg"   image/jpeg
+pair __W10__ "$IMG/wr_nht.jpg"   image/jpeg
+
 awk -F'\t' 'NR==FNR{k[NR]=$1; v[NR]=$2; n=NR; next}
   { for(i=1;i<=n;i++) if(index($0,k[i])) gsub(k[i], v[i]); print }' \
   "$TMP" "$SRC/app_tpl.html" > "$SRC/.app.html"
