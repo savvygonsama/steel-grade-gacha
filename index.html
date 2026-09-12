@@ -897,15 +897,16 @@ var GSPEC = {
   "1470M":  {ts:"1470 이상", el:"4 이상"},
   "PHS":    {ts:"500 ~ 700", el:"20 내외"},
 
-  "연강":       {ts:"350 ~ 450",   el:"40 이상"},
-  "용접봉":     {ts:"350 ~ 450",   el:"35 이상"},
-  "경강":       {ts:"1050 ~ 1200", el:"10 내외"},
-  "타이어코드": {ts:"1150 ~ 1300", el:"8 내외"},
-  "CHQ":        {ts:"600 내외",    el:"20 이상"},
-  "베어링강":   {ts:"600 ~ 700",   el:"20 이상"},
-  "스프링강":   {ts:"900 ~ 1100",  el:"12 내외"},
-  "밸브스프링": {ts:"1900 ~ 2100", el:"6 내외"},
-  "비조질":     {ts:"700 ~ 900",   el:"18 이상"},
+  /* 선재는 연신율을 쓰지 않습니다. 규격서가 보증하는 것은 단면수축률(RA)입니다. */
+  "연강":       {ts:"350 ~ 450",   ra:"70 이상"},
+  "용접봉":     {ts:"350 ~ 450",   ra:"70 이상"},
+  "경강":       {ts:"1050 ~ 1200", ra:"35 이상"},
+  "타이어코드": {ts:"1150 ~ 1300", ra:"30 이상"},
+  "CHQ":        {ts:"600 내외",    ra:"60 이상"},
+  "베어링강":   {ts:"600 ~ 700",   ra:"40 이상"},
+  "스프링강":   {ts:"900 ~ 1100",  ra:"30 이상"},
+  "밸브스프링": {ts:"1900 ~ 2100", ra:"40 이상"},
+  "비조질":     {ts:"700 ~ 900",   ra:"45 이상"},
   "1470H":  {ts:"500 ~ 700", el:"20 내외"}
 };
 
@@ -2380,8 +2381,13 @@ function lvBadge(c){
 /* 등급별 대표 물성. 열처리 계열은 뒷면 값이 따로 있습니다. */
 function specOf(c, alt){
   var g = GSPEC[c.g] || {ts:"—", el:"—"};
-  if(alt && c.alt && c.alt.ts) return {ts:c.alt.ts, el:c.alt.el};
+  if(alt && c.alt && c.alt.ts) return {ts:c.alt.ts, el:c.alt.el, ra:c.alt.ra};
   return g;
+}
+/* 판재는 연신율, 선재는 단면수축률. 두 번째 줄의 이름과 값이 같이 바뀝니다. */
+function ductRow(sp){
+  if(sp.ra) return {k:"단면수축률 RA", v:sp.ra};
+  return {k:"연신율 EL", v:sp.el || "—"};
 }
 
 /* 등급을 먼저 뽑고 그 안에서 한 장 고릅니다.
@@ -2939,7 +2945,7 @@ function openCard(id, side){
     '<p class="q">"'+view.line+'"</p>' +
     '<dl class="rows">' +
       '<div class="r"><dt>인장강도</dt><dd>'+sp.ts+' <u>MPa</u></dd></div>' +
-      '<div class="r"><dt>연신율 EL</dt><dd>'+sp.el+' <u>%</u></dd></div>' +
+      '<div class="r"><dt>'+ductRow(sp).k+'</dt><dd>'+ductRow(sp).v+' <u>%</u></dd></div>' +
       '<div class="r wide"><dt>주 적용 부품</dt><dd>'+(USE[id] || "—")+'</dd></div>' + itRow +
     '</dl>' +
     '<p class="note">물성은 그 급의 대표값입니다. 규격 보증치는 사양서를 보세요.</p>' +
