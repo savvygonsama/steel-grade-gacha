@@ -89,6 +89,9 @@ pair __W8__  "$IMG/wr_spr.jpg"   image/jpeg
 pair __W9__  "$IMG/wr_vlv.jpg"   image/jpeg
 pair __W10__ "$IMG/wr_nht.jpg"   image/jpeg
 
+# 이지(EG) — 연료탱크용 편면 도금재
+pair __E1__  "$IMG/eg_secc.jpg"  image/jpeg
+
 awk -F'\t' 'NR==FNR{k[NR]=$1; v[NR]=$2; n=NR; next}
   { for(i=1;i<=n;i++) if(index($0,k[i])) gsub(k[i], v[i]); print }' \
   "$TMP" "$SRC/app_tpl.html" > "$SRC/.app.html"
