@@ -71,9 +71,15 @@ pair __I7__ "$IT/iron.png"      image/png
 pair __I8__ "$IT/spark.png"     image/png
 pair __I9__ "$IT/hourglass.png" image/png
 
+# 선재용 다섯 — 그림 대기
+pair __I10__ "$IT/kettle.png"   image/png
+pair __I11__ "$IT/loupe.png"    image/png
+pair __I12__ "$IT/bath.png"     image/png
+pair __I13__ "$IT/jominy.png"   image/png
+pair __I14__ "$IT/section.png"  image/png
+
 # 타래 — 선재 열 종
 pair __W1__  "$IMG/wr_swrm.jpg"  image/jpeg
-pair __W2__  "$IMG/wr_bic.jpg"   image/jpeg
 pair __W3__  "$IMG/wr_swry.jpg"  image/jpeg
 pair __W4__  "$IMG/wr_swrh.jpg"  image/jpeg
 pair __W5__  "$IMG/wr_cord.jpg"  image/jpeg
