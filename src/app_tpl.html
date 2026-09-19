@@ -2297,8 +2297,9 @@ var KEY = "steelgrade_gacha_v1";
 var S = { owned:{}, stock:{}, last:"", extra:0, quizDay:"", items:{}, orderDay:"", orderKey:"",
           scrap:0, pending:"", pullAt:0, quizAt:0, quizUsed:0, bell:false, belledAt:-1,
           backupAt:0, orderDone:0, promoSeen:"", promoDone:"", noticeSeen:"",
-          parts:{}, cars:[] };
+          parts:{}, cars:[], pullUsed:0 };
 var SCRAP_LV3 = 5, SCRAP_LV4 = 10;
+var PULL_MAX = 1;   /* 기본 뽑기는 24시간에 한 번 */
 var QUIZ_MAX = 3;   /* 퀴즈로 얻을 수 있는 뽑기는 24시간에 세 번까지 */
 var ORDER_MAX = 1;  /* 고객 요구는 하루 한 건 */
 
@@ -2307,10 +2308,12 @@ var ORDER_MAX = 1;  /* 고객 요구는 하루 한 건 */
    한국시간 00시를 UTC로 못 박아 둡니다(KST = UTC+9). 창이 닫히면 코드를
    건드리지 않아도 저절로 평소대로 돌아갑니다.                          */
 var PROMO = {
-  key:  "2026-09-14",
-  from: Date.UTC(2026, 8, 13, 22, 0, 0),   /* 2026-09-14 07:00 KST */
-  to:   Date.UTC(2026, 8, 15, 15, 0, 0),   /* 2026-09-16 00:00 KST */
-  name: "증산 이벤트",
+  key:  "2026-09-19",
+  from: Date.UTC(2026, 8, 19,  3, 0, 0),   /* 2026-09-19 12:00 KST */
+  to:   Date.UTC(2026, 8, 20, 15, 0, 0),   /* 2026-09-21 00:00 KST */
+  name: "고로 개수 대비 증산",
+  why:  "고로 개수 수리를 앞두고 소재를 미리 비축합니다.",
+  pullMax: 2,             /* 기본 뽑기 1회 → 2회 */
   quizMax: 5,             /* 퀴즈 3회 → 5회 */
   orderMax: ORDER_MAX     /* 고객 요구는 그대로 하루 한 건 */
 };
@@ -2319,6 +2322,7 @@ function promoSoon(){ return Date.now() < PROMO.from; }
 function promoLeft(){ return Math.max(0, PROMO.to - Date.now()); }
 function promoIn(){ return Math.max(0, PROMO.from - Date.now()); }
 /* 이 두 함수만 보고 판단합니다. 상수를 직접 쓰는 곳이 없어야 원복이 확실합니다. */
+function pullMax(){ return promoOn() ? PROMO.pullMax : PULL_MAX; }
 function quizMax(){ return promoOn() ? PROMO.quizMax : QUIZ_MAX; }
 function orderMax(){ return promoOn() ? PROMO.orderMax : ORDER_MAX; }
 
@@ -2341,6 +2345,8 @@ function applySaved(p){
   S.items=p.items||{}; S.orderDay=p.orderDay||""; S.orderKey=p.orderKey||"";
   S.scrap=p.scrap||0; S.pending=p.pending||"";
   S.pullAt=p.pullAt||0; S.quizAt=p.quizAt||0; S.quizUsed=p.quizUsed||0;
+  /* 옛 저장본에는 뽑기 몫이 없습니다. 창이 열려 있었다면 한 번 쓴 것으로 봅니다. */
+  S.pullUsed=(typeof p.pullUsed === "number") ? p.pullUsed : (p.pullAt ? 1 : 0);
   S.bell=!!p.bell; S.belledAt=(typeof p.belledAt==="number")?p.belledAt:-1;
   S.backupAt=p.backupAt||0;
   S.orderDone=p.orderDone||0; S.promoSeen=p.promoSeen||""; S.promoDone=p.promoDone||"";
@@ -2489,7 +2495,7 @@ function makeCode(){
     o:Object.keys(S.owned).map(idShort),
     i:items,
     s:S.scrap, x:S.extra,
-    p:S.pullAt, q:S.quizAt, u:S.quizUsed,
+    p:S.pullAt, q:S.quizAt, u:S.quizUsed, pu:S.pullUsed,
     od:S.orderDay, ok:S.orderKey, on:S.orderDone,
     pt:Object.keys(S.parts),
     st:(function(){ var o={},k; for(k in S.stock) if(S.stock.hasOwnProperty(k)) o[idShort(k)]=S.stock[k]; return o; })(),
@@ -2517,6 +2523,7 @@ function applyCode(pack){
   S.owned = owned; S.items = items;
   S.scrap = pack.s || 0; S.extra = pack.x || 0;
   S.pullAt = pack.p || 0; S.quizAt = pack.q || 0; S.quizUsed = pack.u || 0;
+  S.pullUsed = (typeof pack.pu === "number") ? pack.pu : (pack.p ? 1 : 0);
   S.orderDay = pack.od || ""; S.orderKey = pack.ok || ""; S.orderDone = pack.on || 0;
   var pts = {};
   (pack.pt || []).forEach(function(k){ if(findPart(k)) pts[k] = {at:0, use:[]}; });
@@ -2541,13 +2548,21 @@ function applyCode(pack){
    달력 날짜가 아니라 마지막으로 쓴 시각에서 24시간을 셉니다.        */
 var DAY = 24 * 60 * 60 * 1000;
 function readyIn(at){ return Math.max(0, (at || 0) + DAY - Date.now()); }
-function pullReady(){ return readyIn(S.pullAt) === 0; }
+/* 기본 뽑기도 퀴즈처럼 몫으로 셉니다. 첫 뽑기 시각부터 24시간이 한 판이고
+   그 안에서 pullMax()번까지 씁니다. 증산 기간에는 그 몫이 늘어납니다. */
+function pullWindowOpen(){ return !!S.pullAt && readyIn(S.pullAt) > 0; }
+function pullBaseLeft(){
+  return pullWindowOpen() ? Math.max(0, pullMax() - S.pullUsed) : pullMax();
+}
+function pullReady(){ return pullBaseLeft() > 0; }
+/* 24시간이 지나 몫이 새로 채워진 순간. 알림은 이때만 울립니다. */
+function pullRenewed(){ return !!S.pullAt && readyIn(S.pullAt) === 0; }
 /* 퀴즈는 첫 정답 시각부터 24시간이 한 판. 그 안에서 세 번까지 받습니다. */
 function quizWindowOpen(){ return S.quizAt && readyIn(S.quizAt) > 0; }
 function quizLeft(){ return quizWindowOpen() ? Math.max(0, quizMax() - S.quizUsed) : quizMax(); }
 function quizReady(){ return quizLeft() > 0; }
-/* 하루 최대 네 번 — 기본 한 번 + 퀴즈 세 번 */
-function pullsLeft(){ return (pullReady() ? 1 : 0) + S.extra; }
+/* 하루 최대 = 기본 몫 + 퀴즈로 얻은 몫 */
+function pullsLeft(){ return pullBaseLeft() + S.extra; }
 
 function fmtWait(ms){
   var m = Math.ceil(ms / 60000);
@@ -2629,7 +2644,7 @@ function showToast(msg, title){
 function fireBell(){
   if(!bellOn()) return;
   if(!S.pullAt) return;                 /* 아직 한 번도 안 뽑았으면 알릴 것이 없습니다 */
-  if(!pullReady()) return;
+  if(!pullRenewed()) return;
   if(S.belledAt === S.pullAt) return;   /* 이 주기는 이미 알렸습니다 */
   S.belledAt = S.pullAt; save();
   var opt = { body:"오늘의 뽑기가 열렸습니다. 강종 한 장 뽑으러 가세요.",
@@ -2657,7 +2672,7 @@ function armBell(){
 
 var wasReady = null;
 function watchReady(){
-  var r = pullReady() && !!S.pullAt;
+  var r = pullRenewed();
   if(wasReady === false && r){
     fireBell();
     showToast(bellOn() ? "알림을 보냈습니다. 오늘의 뽑기를 받으세요."
@@ -2761,15 +2776,16 @@ function renderPromo(){
     el.innerHTML =
       '<span class="pl">LIMITED</span>' +
       '<span class="pt">' + PROMO.name + ' 진행 중</span>' +
-      '<span class="pd">철강 퀴즈가 하루 ' + QUIZ_MAX + '회에서 ' +
-        PROMO.quizMax + '회로 늘었습니다.</span>' +
+      '<span class="pd">뽑기 ' + PROMO.pullMax + '회 · 철강 퀴즈 ' + PROMO.quizMax +
+        '회. ' + PROMO.why + '</span>' +
       '<span class="pc">남은 시간 ' + fmtSpan(promoLeft()) + '</span>';
   } else if(promoSoon()){
     el.className = "promo soon show";
     el.innerHTML =
       '<span class="pl">COMING</span>' +
       '<span class="pt">' + PROMO.name + ' 예고</span>' +
-      '<span class="pd">철강 퀴즈 ' + QUIZ_MAX + '회 → ' + PROMO.quizMax + '회.</span>' +
+      '<span class="pd">뽑기 ' + PULL_MAX + '회 → ' + PROMO.pullMax +
+        '회, 철강 퀴즈 ' + QUIZ_MAX + '회 → ' + PROMO.quizMax + '회.</span>' +
       '<span class="pc">' + promoWhen() + ' · ' + fmtSpan(promoIn()) + ' 뒤 시작</span>';
   } else {
     el.className = "promo";
@@ -2837,7 +2853,8 @@ function openNotice(){
   if(promoOn() || promoSoon()){
     h += '<div class="nevent"><span class="el">' + (promoOn() ? "진행 중" : "예정") + '</span>' +
          '<b>' + PROMO.name + '</b>' +
-         '<p>철강 퀴즈가 하루 ' + QUIZ_MAX + '회에서 <b>' + PROMO.quizMax + '회</b>로 늘었습니다.</p>' +
+         '<p>뽑기가 하루 <b>' + PROMO.pullMax + '회</b>, 철강 퀴즈가 <b>' +
+         PROMO.quizMax + '회</b>로 늘었습니다.</p>' +
          '<p class="ew">' + promoWhen() + '</p></div>';
   }
   h += '<button class="btn-sub cut" id="noticeOk" type="button">확인</button>';
@@ -2901,9 +2918,9 @@ function openPromo(){
   promoBox.innerHTML =
     '<span class="k">LIMITED</span>' +
     '<h3>' + PROMO.name + '</h3>' +
-    '<p class="sub">기간 동안 철강 퀴즈를 더 풀 수 있습니다.<br>' +
-      '끝나면 저절로 평소대로 돌아갑니다.</p>' +
+    '<p class="sub">' + PROMO.why + '<br>기간이 끝나면 저절로 평소대로 돌아갑니다.</p>' +
     '<div class="rows">' +
+      '<div class="r"><b>뽑기</b><span><i>하루 ' + PULL_MAX + '회</i>하루 ' + PROMO.pullMax + '회</span></div>' +
       '<div class="r"><b>철강 퀴즈</b><span><i>하루 ' + QUIZ_MAX + '회</i>하루 ' + PROMO.quizMax + '회</span></div>' +
     '</div>' +
     '<p class="when">' + promoWhen() + '<br>남은 시간 ' + fmtSpan(promoLeft()) + '</p>' +
@@ -2917,7 +2934,8 @@ function openPromo(){
 /* 알림을 켜 둔 사람에게는 시작하는 그 시각에 한 번 알립니다 */
 function promoBell(){
   if(!bellOn()) return;
-  var opt = { body: PROMO.name + " 시작. 철강 퀴즈가 하루 " + PROMO.quizMax + "회로 늘었습니다.",
+  var opt = { body: PROMO.name + " 시작. 뽑기 " + PROMO.pullMax + "회, 철강 퀴즈 " +
+                    PROMO.quizMax + "회입니다.",
               icon:"icon-192.png", badge:"icon-192.png", tag:"sgg-promo", renotify:true };
   try{
     if(navigator.serviceWorker && navigator.serviceWorker.ready){
@@ -2950,8 +2968,8 @@ function checkPromo(){
     /* 참여했던 사람에게만, 끝났다는 것을 한 번 알립니다 */
     if(S.promoSeen === PROMO.key && S.promoDone !== PROMO.key){
       S.promoDone = PROMO.key; save();
-      showToast("퀴즈 " + QUIZ_MAX + "회, 고객 요구 하루 " + ORDER_MAX +
-                "건으로 돌아갑니다.", "한정 기간이 끝났습니다");
+      showToast("뽑기 하루 " + PULL_MAX + "회, 퀴즈 " + QUIZ_MAX + "회로 돌아갑니다.",
+                "한정 기간이 끝났습니다");
     }
   }
   renderNotice();
@@ -3776,13 +3794,16 @@ function showPull(id, isNew, tag){
 document.getElementById("btnPull").addEventListener("click", function(){
   if(pullsLeft()<=0) return;
   sweepPending();
-  if(pullReady()) S.pullAt = Date.now(); else S.extra--;
+  if(pullReady()){
+    if(!pullWindowOpen()){ S.pullAt = Date.now(); S.pullUsed = 0; }
+    S.pullUsed++;
+  } else S.extra--;
   var id = weightedPick();
   var isNew = !S.owned[id];
   S.owned[id] = true;
   addStock(id, 1);
   save();
-  wasReady = pullReady();
+  wasReady = pullRenewed();
   armBell();
   askPersist();      /* 사용자 동작 직후여야 허가가 잘 납니다 */
   showPull(id, isNew);
@@ -4151,7 +4172,7 @@ function openBackup(){
     }
     applyCode(pack);
     refresh(); renderBackupWhen();
-    wasReady = pullReady() && !!S.pullAt;
+    wasReady = pullRenewed();
     armBell();
     res.className = "bkres ok";
     res.textContent = "되돌렸습니다. 캐릭터 " + Object.keys(S.owned).length +
@@ -4215,7 +4236,7 @@ if(loadFailed){
 }
 bootRestore(needRestore, function(){
   if(!loadFailed) mirrorPut();   /* 사본이 없던 사람에게도 한 벌 만들어 둡니다 */
-  wasReady = pullReady() && !!S.pullAt;
+  wasReady = pullRenewed();
   armBell();
   checkNotice();
   armNotice();
