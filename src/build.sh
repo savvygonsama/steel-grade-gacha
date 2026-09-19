@@ -92,6 +92,9 @@ pair __W10__ "$IMG/wr_nht.jpg"   image/jpeg
 # 이지(EG) — 연료탱크용 편면 도금재
 pair __E1__  "$IMG/eg_secc.jpg"  image/jpeg
 
+# 히든 — 큐피(QP) 1470 QP · 선행개발
+pair __Q1__  "$IMG/qp_1470.jpg"  image/jpeg
+
 # 자동차 부품 (34종) — src/partimg · 번호는 그림 파일 번호와 같습니다
 PT="$SRC/partimg"
 pair __C1__  "$PT/roof.png"     image/png

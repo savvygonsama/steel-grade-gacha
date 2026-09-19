@@ -9,7 +9,7 @@
     --ink:#16202B; --ink-2:#53616F; --ink-3:#8593A2;
     --ochre:#1F5C99; --ochre-d:#4C8AC4; --slate:#7F9DB8;
     --deep:#243342;
-    --po:#BE473D; --cr:#2A6DA8; --ga:#7C5D91; --wr:#A0722A; --eg:#1A7B83; --ok:#2E7D53;
+    --po:#BE473D; --cr:#2A6DA8; --ga:#7C5D91; --wr:#A0722A; --eg:#1A7B83; --qp:#3F428F; --ok:#2E7D53;
     --cut:14px;
   }
   *{box-sizing:border-box}
@@ -510,6 +510,34 @@
   .car .cw{margin:11px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;
            letter-spacing:.04em;opacity:.75}
 
+  /* 히든 — 선행개발 */
+  .lvb.lv5{background:rgba(34,31,86,.92);color:#EEEBFF}
+  .lvb.lv5 b{color:#B9B2FF}
+  .cell.qpdev{cursor:pointer;border:1px solid var(--qp);padding:0;font:inherit;
+              background:radial-gradient(ellipse at 50% 40%,#3A3E86 0,#1B1C3E 70%);
+              transition:transform .12s}
+  .cell.qpdev:hover{transform:translateY(-2px)}
+  .cell.qpdev:focus-visible{outline:2px solid var(--qp);outline-offset:2px}
+  /* 그림 배경이 투명하지 않아 곱하기로 겹칩니다. 밝은 배경은 사라지고 몸만 어둡게 남습니다. */
+  .cell.qpdev img{position:absolute;inset:0;filter:grayscale(1) contrast(1.5);
+                  mix-blend-mode:multiply;opacity:.95}
+  .cell.qpdev .gd{background:var(--qp);color:#EEEBFF}
+  .cell.qpdev .qpgo{position:absolute;left:0;right:0;bottom:9px;display:flex;flex-direction:column;
+                    align-items:center;gap:3px}
+  .cell.qpdev .qpgo b{font-size:11px;font-weight:700;letter-spacing:.04em;color:#C9C4FF}
+  .cell.qpdev .qpgo span{font-size:10.5px;font-weight:700;padding:3px 8px;background:#EEEBFF;
+                         color:#2A2B66;letter-spacing:-.01em}
+  .slot .cands .cd.qp{border-color:var(--qp);color:var(--qp);background:rgba(63,66,143,.08)}
+  .slot .cands .cd.qp.pick{background:var(--qp);border-color:var(--qp);color:#EEEBFF}
+  .pt.qpd .qpsil{margin:12px auto 0;width:120px;aspect-ratio:2/3;overflow:hidden;
+                 background:radial-gradient(ellipse at 50% 40%,#3A3E86 0,#1B1C3E 72%);--cut:10px;
+                 clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),
+                   calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+  .pt.qpd .qpsil img{width:100%;height:100%;object-fit:cover;display:block;
+                     filter:grayscale(1) contrast(1.5);mix-blend-mode:multiply;opacity:.95}
+  .pt.qpd h3,.pt.qpd .ptg,.pt.qpd .ptno{text-align:center}
+  .pt.qpd .ptno{color:var(--qp)}
+
   /* 공지사항 */
   .notice{display:none}
   .notice.show{display:block;margin:0 0 10px}
@@ -908,6 +936,7 @@ var IMG = {
   "wr-VLV": "__W9__", "wr-NHT": "__W10__",
 
   "eg-SECC": "__E1__",
+  "qp-1470": "__Q1__",
 
   "poo-PHS": "__H1__", "ga-1470H": "__H3__"
 };
@@ -1142,6 +1171,13 @@ var FAMS = [
       {id:"wr-SPR", code:"SAE 9254", g:"스프링강", t:"Si-Cr 스프링강", line:"눌러 봐. 그만큼 돌려줄게."},
       {id:"wr-VLV", code:"SAE 9254V", g:"밸브스프링", t:"엔진 밸브스프링용", line:"일 분에 삼천 번. 십 년을 그렇게 뛰어."},
       {id:"wr-NHT", code:"열처리생략형", g:"비조질", t:"비조질 냉간압조용", line:"열처리를 건너뛰어. 공정도 탄소도 같이 줄지."}
+    ]},
+  /* 히든 — 1470급 셋을 도감에 올려야 칸이 보이고, 뽑기로는 나오지 않습니다 */
+  { key:"qp", name:"큐피", abbr:"QP", kind:"냉연 초고장력 · 선행개발", pre:"Q&P", std:"사내 선행개발", c:"var(--qp)",
+    hidden:true,
+    list:[
+      {id:"qp-1470", code:"1470 QP", g:"1470QP", t:"담금질 · 분배 처리강 · 선행개발",
+       line:"한 번 굳히고, 탄소를 한 번 더 나눴어. 그래서 세면서도 늘어나."}
     ]}
 ];
 
@@ -1177,7 +1213,10 @@ var GSPEC = {
   /* 연료탱크용 편면 도금재. 소지는 심가공 연질재입니다. */
   "편면도금": {ts:"270 이상", el:"40 이상"},
 
-  "1470H":  {ts:"500 ~ 700", el:"20 내외"}
+  "1470H":  {ts:"500 ~ 700", el:"20 내외"},
+
+  /* 같은 1470급인데 연신이 두 배를 넘습니다. 이 강을 개발하는 이유가 이 숫자입니다. */
+  "1470QP": {ts:"1470 이상", el:"10 이상"}
 };
 
 /* 주로 나가는 자동차 부품. 같은 등급이라도 품종마다 다릅니다. */
@@ -1209,7 +1248,9 @@ var USE = {
   "wr-SUJ":"베어링 볼 · 롤러 · 궤도륜", "wr-SPR":"현가 스프링 · 스태빌라이저",
   "wr-VLV":"엔진 밸브 스프링", "wr-NHT":"열처리 생략 볼트 · 단조 부품",
 
-  "eg-SECC":"연료탱크 · 필러넥"
+  "eg-SECC":"연료탱크 · 필러넥",
+
+  "qp-1470":"B 필러 · 사이드 실 · 루프 레일 (냉간 성형)"
 };
 
 /* ── 자동차 부품 ──────────────────────────────────
@@ -2291,13 +2332,14 @@ var QUIZ = [
 ];
 
 /* 그림이 들어온 강종만 뽑기 풀에 오릅니다 */
-var POOL = Object.keys(IMG).filter(function(k){ return IMG[k]; });
+/* 히든 캐릭터는 뽑기 풀에 넣지 않습니다 */
+var POOL = Object.keys(IMG).filter(function(k){ return IMG[k] && k !== "qp-1470"; });
 var KEY = "steelgrade_gacha_v1";
 
 var S = { owned:{}, stock:{}, last:"", extra:0, quizDay:"", items:{}, orderDay:"", orderKey:"",
           scrap:0, pending:"", pullAt:0, quizAt:0, quizUsed:0, bell:false, belledAt:-1,
           backupAt:0, orderDone:0, promoSeen:"", promoDone:"", noticeSeen:"",
-          parts:{}, cars:[], pullUsed:0 };
+          parts:{}, cars:[], pullUsed:0, qpSeen:0 };
 var SCRAP_LV3 = 5, SCRAP_LV4 = 10;
 var PULL_MAX = 1;   /* 기본 뽑기는 24시간에 한 번 */
 var QUIZ_MAX = 3;   /* 퀴즈로 얻을 수 있는 뽑기는 24시간에 세 번까지 */
@@ -2350,7 +2392,7 @@ function applySaved(p){
   S.bell=!!p.bell; S.belledAt=(typeof p.belledAt==="number")?p.belledAt:-1;
   S.backupAt=p.backupAt||0;
   S.orderDone=p.orderDone||0; S.promoSeen=p.promoSeen||""; S.promoDone=p.promoDone||"";
-  S.noticeSeen=p.noticeSeen||"";
+  S.noticeSeen=p.noticeSeen||""; S.qpSeen=p.qpSeen||0;
   S.parts=p.parts||{}; S.stock=p.stock||{};
   S.cars=(Object.prototype.toString.call(p.cars)==="[object Array]") ? p.cars : [];
   /* 옛 저장본 살리기 — 재고가 없으면 도감 한 장씩 채워 넣고,
@@ -2995,9 +3037,10 @@ var LVG = {
   1: ["CQ","DQ","DDQ","340W","370W",              "연강"],
   2: ["EDDQ","340H","440W","590Y","780Y",          "용접봉","경강","타이어코드"],
   3: ["S-EDDQ","980Y","1180Y","편면도금",          "CHQ","베어링강","스프링강"],
-  4: ["1470M","1470H","PHS",                       "밸브스프링","비조질"]
+  4: ["1470M","1470H","PHS",                       "밸브스프링","비조질"],
+  5: ["1470QP"]                 /* 히든. 뽑기 확률이 없고 개발로만 얻습니다 */
 };
-var LVNAME = {1:"일반제품", 2:"시장기반전략제품", 3:"기술기반전략제품", 4:"미래수요제품"};
+var LVNAME = {1:"일반제품", 2:"시장기반전략제품", 3:"기술기반전략제품", 4:"미래수요제품", 5:"선행개발제품"};
 var LVRATE = {1:0.45, 2:0.35, 3:0.15, 4:0.05};
 
 /* 같은 등급 안에서도 유난히 귀한 것들. 1이 기본이고 작을수록 덜 나옵니다.
@@ -3012,7 +3055,7 @@ var RARE = {
 function rareOf(id){ return RARE[id] || 1; }
 
 function lvOf(c){
-  for(var k=4;k>=1;k--) if(LVG[k].indexOf(c.g) >= 0) return k;
+  for(var k=5;k>=1;k--) if(LVG[k].indexOf(c.g) >= 0) return k;
   return 1;
 }
 /* 카드 왼쪽 위 구석에 붙는 제품 등급 표시 */
@@ -3212,6 +3255,36 @@ function findPart(key){
   for(var i=0;i<PARTS.length;i++) if(PARTS[i].key === key) return PARTS[i];
   return null;
 }
+/* ── 선행개발 · 큐피(QP) ───────────────────────────
+   1470급 셋(냉연 1470M · 도금 1470H · 산세 PHS)을 도감에 올리면 칸이 보입니다.
+   뽑기로는 나오지 않고, 창고 카드와 스크랩을 헐어 개발합니다.
+   얻고 나면 1470급이 후보에 있는 칸을 카드 소모 없이 채웁니다.          */
+var QP_ID  = "qp-1470";
+var QP_KEY = ["ssial-1470M", "ga-1470H", "poo-PHS"];   /* 출현 조건이자 QP가 대신하는 강종 */
+var QP_NEED = [
+  {n:"마르텐사이트의 강도", any:["ssial-1470M"]},
+  {n:"변태조직강의 연성",   any:["ssial-1180Y", "ga-1180Y"]}
+];
+var QP_SCRAP = 10;
+
+function hasQP(){ return !!S.owned[QP_ID]; }
+function qpRevealed(){
+  for(var i=0;i<QP_KEY.length;i++) if(!S.owned[QP_KEY[i]]) return false;
+  return true;
+}
+/* 이 칸을 QP가 대신 채울 수 있는가 — 후보에 1470급이 하나라도 있으면 */
+function qpCovers(sl){
+  if(!hasQP()) return false;
+  for(var i=0;i<sl.any.length;i++) if(QP_KEY.indexOf(sl.any[i]) >= 0) return true;
+  return false;
+}
+/* 열리는 순간 한 번만 알립니다 */
+function checkQP(){
+  if(!qpRevealed() || S.qpSeen) return;
+  S.qpSeen = 1; save();
+  showToast("도감 맨 끝에 새 칸이 생겼습니다.", "선행개발 과제가 열렸습니다");
+}
+
 /* ── 창고 ─────────────────────────────────────────
    도감(S.owned)은 한 번이라도 얻었다는 기록이라 지워지지 않습니다.
    창고(S.stock)는 실제로 손에 쥔 장수이고, 부품을 만들면 줄어듭니다.   */
@@ -3233,10 +3306,14 @@ function partPlan(p, picks){
   var tmp = {}, out = [], i, j;
   for(i = 0; i < p.need.length; i++){
     var sl = p.need[i], got = null;
-    /* 사람이 고른 게 있으면 그것부터 */
-    var want = picks && picks[i];
-    if(want && sl.any.indexOf(want) >= 0 && stockOf(want) - (tmp[want] || 0) > 0){
+    /* 사람이 고른 게 있으면 그것부터. QP가 대신할 수 있는 칸이면 기본은 QP입니다. */
+    var want = picks && picks[i], free = qpCovers(sl);
+    if(want === QP_ID && free){
+      got = QP_ID;
+    } else if(want && sl.any.indexOf(want) >= 0 && stockOf(want) - (tmp[want] || 0) > 0){
       got = want;
+    } else if(free){
+      got = QP_ID;
     } else {
       for(j = 0; j < sl.any.length; j++){
         var id = sl.any[j], left = stockOf(id) - (tmp[id] || 0);
@@ -3247,13 +3324,14 @@ function partPlan(p, picks){
       }
     }
     if(!got) return null;
-    tmp[got] = (tmp[got] || 0) + 1;
+    if(got !== QP_ID) tmp[got] = (tmp[got] || 0) + 1;   /* QP는 닳지 않습니다 */
     out.push(got);
   }
   return out;
 }
 
 function slotOk(sl){
+  if(qpCovers(sl)) return true;
   for(var i=0;i<sl.any.length;i++) if(stockOf(sl.any[i]) > 0) return true;
   return false;
 }
@@ -3278,7 +3356,7 @@ function craft(key, picks){
   if(!p || partDone(p)) return false;
   var use = partPlan(p, picks);
   if(!use) return false;
-  use.forEach(function(id){ addStock(id, -1); });
+  use.forEach(function(id){ if(id !== QP_ID) addStock(id, -1); });
   S.parts[key] = {at:Date.now(), use:use};
   save();
   return true;
@@ -3481,6 +3559,17 @@ function partUse(k){
 function useText(ids){
   return ids.map(function(id){ var c = findChar(id); return c ? sh(c.fam)+" "+c.g : id; }).join(" · ");
 }
+/* 제작 버튼 — 무엇이 창고에서 빠지는지만 적습니다. QP는 닳지 않습니다. */
+function mkLabel(use){
+  var eat = use.filter(function(id){ return id !== QP_ID; });
+  if(!eat.length) return "제작 — QP로 카드 소모 없이";
+  return "제작 — " + useText(eat) + " 헐기" + (eat.length < use.length ? " · 나머지는 QP" : "");
+}
+function mkDone(use){
+  var eat = use.filter(function(id){ return id !== QP_ID; });
+  if(!eat.length) return "QP로 카드를 쓰지 않고 만들었습니다.";
+  return useText(eat) + "을 헐었습니다" + (eat.length < use.length ? " · 나머지는 QP가 채웠습니다." : ".");
+}
 
 function openPart(key){
   var p = findPart(key); if(!p) return;
@@ -3521,6 +3610,11 @@ function openPart(key){
         h += '<div class="slot cut'+(ok?" on":"")+'">'+
              '<div class="sn"><span class="mk">'+(ok?"■":"□")+'</span>'+sl.n+'</div>'+
              '<div class="cands">';
+        /* QP가 대신할 수 있는 칸이면 맨 앞에 닳지 않는 칩을 둡니다 */
+        if(qpCovers(sl)){
+          h += '<button type="button" class="cd has qp'+(picks[i]===QP_ID?" pick":"")+
+               '" data-slot="'+i+'" data-id="'+QP_ID+'">QP 1470QP<i>∞</i></button>';
+        }
         sl.any.forEach(function(id){
           var c = findChar(id); if(!c) return;
           var n = stockOf(id);
@@ -3532,7 +3626,7 @@ function openPart(key){
         h += '</div></div>';
       });
       h += '<button class="btn-mk cut" type="button" id="mkBtn"'+(ready?"":" disabled")+'>'+
-           (ready ? "제작 — "+useText(partPlan(p, picks))+" 헐기" : "소재가 모자랍니다")+'</button>'+
+           (ready ? mkLabel(partPlan(p, picks)) : "소재가 모자랍니다")+'</button>'+
            '<p class="mkwarn">만들면 그 카드는 창고에서 빠집니다. 도감에는 그대로 남습니다.</p>';
     }
     h += '<div class="mkres" id="mkres"></div></div>';
@@ -3558,11 +3652,89 @@ function openPart(key){
       draw();
       var r = document.getElementById("mkres");
       r.className = "mkres ok cut";
-      r.innerHTML = '<b>'+p.name+' 완성</b><p>'+useText(used)+'을 헐었습니다. 부품 '+
+      r.innerHTML = '<b>'+p.name+' 완성</b><p>'+mkDone(used)+' 부품 '+
         partCount()+' / '+PARTS.length+
         (carDone() ? ' · 부품이 전부 모였습니다. 아래에서 차를 고르세요.' : '')+'</p>';
       refresh();
       r.scrollIntoView({behavior:"smooth", block:"nearest"});
+    });
+  }
+
+  draw();
+  partModal.classList.add("show");
+  document.body.style.overflow = "hidden";
+  document.getElementById("partX").focus();
+}
+
+/* ── 선행개발 창 ───────────────────────────────────
+   부품 상세와 같은 창을 씁니다. 1470M 한 장과 1180Y 한 장, 스크랩 열 장을
+   헐어 QP를 만듭니다. 강도를 맡는 카드와 연성을 맡는 카드를 합치는 구조가
+   Q&P 공정 그대로입니다.                                                */
+function openDevelop(){
+  if(hasQP() || !qpRevealed()) return;
+  partLast = document.activeElement;
+  partModal.setAttribute("aria-label", "선행개발 과제");
+  var picks = partPlan({need:QP_NEED}) || [];
+
+  function draw(){
+    var plan = partPlan({need:QP_NEED}, picks);
+    var scrapOk = S.scrap >= QP_SCRAP, ok = !!plan && scrapOk;
+    var h = '<button class="x" type="button" id="partX" aria-label="닫기">&times;</button>'+
+      '<div class="pt qpd">'+
+        '<span class="ptno">선행개발 과제 · LV5</span>'+
+        '<h3>1470 QP</h3><p class="ptg">담금질 · 분배 처리강</p>'+
+        '<div class="qpsil"><img src="'+IMG[QP_ID]+'" alt=""></div>'+
+        '<p class="ptnote">한 번 담금질해 마르텐사이트를 만들고, 탄소를 오스테나이트로 옮겨 '+
+        '남겨 둡니다. 강도는 마르텐사이트가, 연성은 남은 오스테나이트가 맡습니다. '+
+        '같은 1470급인데 연신율이 두 배를 넘습니다.</p>'+
+        '<span class="lab">헐어 쓸 소재</span>';
+
+    QP_NEED.forEach(function(sl, i){
+      var on = slotOk(sl);
+      h += '<div class="slot cut'+(on?" on":"")+'">'+
+           '<div class="sn"><span class="mk">'+(on?"■":"□")+'</span>'+sl.n+'</div><div class="cands">';
+      sl.any.forEach(function(id){
+        var c = findChar(id); if(!c) return;
+        var n = stockOf(id);
+        h += '<button type="button" class="cd'+(n>0?" has":"")+(picks[i]===id?" pick":"")+
+             '" data-slot="'+i+'" data-id="'+id+'"'+(n>0?"":" disabled")+'>'+
+             sh(c.fam)+' '+c.g+'<i>'+(n>0?"×"+n:"0")+'</i></button>';
+      });
+      h += '</div></div>';
+    });
+    h += '<div class="slot cut'+(scrapOk?" on":"")+'">'+
+         '<div class="sn"><span class="mk">'+(scrapOk?"■":"□")+'</span>스크랩 '+QP_SCRAP+'장</div>'+
+         '<div class="cands"><span class="cd'+(scrapOk?" has":"")+'">보유 '+S.scrap+'장</span></div></div>';
+
+    h += '<button class="btn-mk cut" type="button" id="devBtn"'+(ok?"":" disabled")+'>'+
+         (ok ? "개발 — "+useText(plan)+" · 스크랩 "+QP_SCRAP+"장 헐기" : "소재가 모자랍니다")+
+         '</button>'+
+         '<p class="mkwarn">얻고 나면 1470급이 들어가는 칸을 카드 소모 없이 채웁니다.</p>'+
+       '</div>';
+    partBox.innerHTML = h;
+    document.getElementById("partX").addEventListener("click", closePart);
+
+    var chips = partBox.querySelectorAll(".cd[data-id]");
+    for(var j=0;j<chips.length;j++){
+      (function(b){
+        b.addEventListener("click", function(){
+          picks[parseInt(b.getAttribute("data-slot"),10)] = b.getAttribute("data-id");
+          draw();
+        });
+      })(chips[j]);
+    }
+    var dv = document.getElementById("devBtn");
+    if(dv) dv.addEventListener("click", function(){
+      var use = partPlan({need:QP_NEED}, picks);
+      if(!use || S.scrap < QP_SCRAP || hasQP()) return;
+      use.forEach(function(id){ addStock(id, -1); });
+      S.scrap -= QP_SCRAP;
+      S.owned[QP_ID] = true;
+      addStock(QP_ID, 1);
+      save();
+      closePart();
+      refresh();
+      showPull(QP_ID, true, "선행개발");
     });
   }
 
@@ -3679,7 +3851,9 @@ function openPickTarget(key){
 }
 
 function refresh(){
-  var n = Object.keys(S.owned).length, total = allChars().length;
+  var n = Object.keys(S.owned).length;
+  /* 히든은 열리기 전까지 분모에 넣지 않습니다 */
+  var total = allChars().filter(function(c){ return !c.fam.hidden || qpRevealed() || hasQP(); }).length;
   document.getElementById("stChars").textContent = n+" / "+total;
   document.getElementById("secChars").textContent = n+" / "+total;
   document.getElementById("stItems").textContent = itemCount()+" / "+ITEMS.length;
@@ -3703,17 +3877,32 @@ function refresh(){
   renderItems();
   renderParts();
   renderGarage();
+  checkQP();
 }
 
 function renderDex(){
   var host = document.getElementById("dex"); host.innerHTML="";
   FAMS.forEach(function(f){
+    /* 히든 가족은 조건을 채우기 전까지 칸 자체가 없습니다 */
+    if(f.hidden && !qpRevealed() && !hasQP()) return;
     var wrap = document.createElement("div"); wrap.className="fam"; wrap.style.setProperty("--c", f.c);
     var h = document.createElement("p"); h.className="famh";
     h.innerHTML = String(String.raw`<span class="chip"></span>`) + f.name + " (" + f.abbr + ") " + String.raw`<span class="sp">` + f.pre + " · " + f.std + String.raw`</span>`;
     wrap.appendChild(h);
     var g = document.createElement("div"); g.className="grid";
     f.list.forEach(function(c){
+      /* 열렸지만 아직 개발 전 — 실루엣과 개발 버튼 */
+      if(c.id === QP_ID && !S.owned[c.id]){
+        var dv = document.createElement("button");
+        dv.type = "button"; dv.className = "cell qpdev";
+        dv.setAttribute("aria-label", "선행개발 과제 열기");
+        dv.innerHTML = '<span class="gd">LV5</span>' +
+          (IMG[c.id] ? '<img src="'+IMG[c.id]+'" alt="">' : '') +
+          '<div class="qpgo"><b>선행개발</b><span>개발하기</span></div>';
+        dv.addEventListener("click", openDevelop);
+        g.appendChild(dv);
+        return;
+      }
       var have = !!S.owned[c.id], art = IMG[c.id], stk = stockOf(c.id);
       var cell = document.createElement(have ? "button" : "div");
       if(have){ cell.type = "button"; cell.setAttribute("aria-label", f.name+" "+c.g+" 크게 보기"); }
@@ -3731,7 +3920,7 @@ function renderDex(){
       }
       if(have){
         var sk = document.createElement("span"); sk.className = "stk" + (stk===0?" zero":"");
-        sk.textContent = stk > 0 ? "×"+stk : "0";
+        sk.textContent = c.id === QP_ID ? "∞" : (stk > 0 ? "×"+stk : "0");
         cell.appendChild(sk);
         var lab = document.createElement("div"); lab.className="g";
         lab.innerHTML = '<b class="lvt">LV'+lvOf(c)+'</b>'+c.code; cell.appendChild(lab);
