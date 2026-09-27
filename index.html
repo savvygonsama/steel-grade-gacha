@@ -200,6 +200,50 @@
   .btn-scrap:not(:disabled) .sc{color:var(--ochre)}
   .btn-scrap:disabled{cursor:default;opacity:.8}
 
+  /* 10연 출하 버튼 */
+  .btn-ten{width:100%;margin-top:8px;padding:11px 8px 12px;--cut:12px;text-align:center;
+           line-height:1.35;color:#FDF3E4;
+           background:linear-gradient(104deg,#B9752A 0 38%,#9A5D1E 38% 70%,#7C4A14 70% 100%)}
+  .btn-ten .sl{display:block;font-size:14px;font-weight:700;letter-spacing:-.01em}
+  .btn-ten .sn{display:block;font-size:11.5px;margin-top:1px;opacity:.9}
+  .btn-ten .sc{display:block;font-family:"IBM Plex Mono",monospace;font-size:12px;
+               margin-top:4px;color:#F7C77E;letter-spacing:.04em;
+               font-variant-numeric:tabular-nums}
+  .btn-ten:hover:not(:disabled){filter:brightness(1.08)}
+  .btn-ten:active:not(:disabled){transform:translateY(2px)}
+  .btn-ten:disabled{cursor:default;background:var(--f2);color:var(--ink-3);
+                    border:1px solid var(--edge);opacity:.85}
+  .btn-ten:disabled .sc{color:var(--ink-3)}
+
+  /* 10연 결과 */
+  .ten{padding:14px 13px 15px}
+  .ten .th{margin:0 0 11px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .ten .th b{font-size:16px;font-weight:700;letter-spacing:-.02em}
+  .ten .th span{font-size:12px;color:var(--ink-2)}
+  .tg{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+  .tc{position:relative;aspect-ratio:3/4;padding:0;border:1px solid var(--c,var(--edge));
+      background:var(--f2);--cut:8px;overflow:hidden;font:inherit;
+      transition:transform .1s}
+  .tc:hover{transform:translateY(-2px)}
+  .tc:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+  .tc img{width:100%;height:100%;object-fit:cover;display:block}
+  .tc .tl{position:absolute;top:0;left:0;font-family:Archivo,sans-serif;font-size:8px;
+          font-weight:800;letter-spacing:.02em;padding:2px 4px;
+          background:rgba(14,21,29,.82);color:#E8F0F7}
+  .tc .tl.lv3{background:rgba(20,44,70,.92);color:#8FD4FA}
+  .tc .tl.lv4{background:rgba(58,38,16,.94);color:#F7BC72}
+  .tc .tl.lv5{background:rgba(34,31,86,.94);color:#B9B2FF}
+  .tc .tn{position:absolute;top:0;right:0;font-family:"IBM Plex Mono",monospace;font-size:7.5px;
+          font-weight:700;letter-spacing:.06em;padding:2px 3px;background:var(--ok);color:#F1F8F3}
+  .tc .tp{position:absolute;top:14px;right:0;font-family:"IBM Plex Mono",monospace;
+          font-size:7.5px;font-weight:700;padding:2px 3px;background:#7C4A14;color:#FFF3DF}
+  .tc .tgd{position:absolute;left:0;right:0;bottom:0;padding:8px 2px 3px;font-size:8.5px;
+           font-weight:600;color:#F7FAFD;text-align:center;
+           background:linear-gradient(transparent,rgba(22,32,43,.92))}
+  .ten .ts{margin:11px 0 0;font-size:12.5px;color:var(--ink-2)}
+  .ten .ts b{color:var(--ochre);font-weight:700}
+  @media (max-width:340px){ .tg{grid-template-columns:repeat(4,1fr)} }
+
   /* 뽑기 결과 */
   .pull{margin-top:12px;background:var(--f1);border:1px solid var(--edge);display:none;--cut:18px}
   .pull.show{display:block;animation:shard .34s cubic-bezier(.2,.9,.3,1)}
@@ -845,6 +889,7 @@
   <button class="btn-scrap cut" id="btnScrap3" type="button"></button>
   <button class="btn-scrap cut" id="btnScrap4" type="button"></button>
 </div>
+<button class="btn-ten cut" id="btnTen" type="button"></button>
 <button class="btn-quiz cut" id="btnQuiz" type="button"></button>
 <button class="btn-bell cut" id="btnBell" type="button"></button>
 
@@ -3933,6 +3978,11 @@ function refresh(){
     b.disabled = have < x[1] || left === 0;
     b.title = left === 0 ? "이 등급은 다 모았습니다" : "";
   });
+  var bt = document.getElementById("btnTen");
+  bt.innerHTML = '<span class="sl">10연 출하</span>'+
+                 '<span class="sn">열 장 한 번에 · LV3 이상 한 장 보장</span>'+
+                 '<span class="sc">스크랩 '+Math.min(have, SCRAP_TEN)+' / '+SCRAP_TEN+'</span>';
+  bt.disabled = !tenReady();
   tick();
   renderBell();
   renderBackupWhen();
@@ -4065,6 +4115,67 @@ document.getElementById("btnPull").addEventListener("click", function(){
   showPull(id, isNew);
 });
 
+/* ── 10연 출하 ─────────────────────────────────────
+   스크랩 스무 장으로 열 장을 한 번에. LV3 이상 한 장은 보장합니다.
+   하루 뽑기 몫과는 따로 돕니다. 코일 열 개가 한 로트로 나오는 셈입니다. */
+var SCRAP_TEN = 20, TEN_N = 10;
+function tenReady(){ return S.scrap >= SCRAP_TEN && POOL.length > 0; }
+
+function tenPull(){
+  if(!tenReady()) return;
+  S.scrap -= SCRAP_TEN;
+  var ids = [], i;
+  for(i = 0; i < TEN_N; i++) ids.push(weightedPick());
+
+  /* 열 장 안에 LV3 이상이 하나도 없으면 마지막 한 장을 바꿔 줍니다 */
+  var hi = false;
+  for(i = 0; i < ids.length; i++) if(lvOf(findChar(ids[i])) >= 3){ hi = true; break; }
+  if(!hi){
+    var up = POOL.filter(function(id){ return lvOf(findChar(id)) >= 3; });
+    if(up.length) ids[TEN_N - 1] = pickIn(up);
+  }
+
+  var isNew = [];
+  ids.forEach(function(id, k){
+    isNew[k] = !S.owned[id];
+    S.owned[id] = true;
+    addStock(id, 1);
+  });
+  save();
+  showTen(ids, isNew);
+  refresh();
+}
+
+function showTen(ids, isNew){
+  var box = document.getElementById("pullBox");
+  box.style.setProperty("--c", "var(--ochre)");
+  var fresh = 0, hi = 0, h = "";
+  ids.forEach(function(id, k){
+    var c = findChar(id), lv = lvOf(c);
+    if(isNew[k]) fresh++;
+    if(lv >= 3) hi++;
+    h += '<button class="tc cut" type="button" data-id="'+id+'" style="--c:'+c.fam.c+'">'+
+         '<img src="'+IMG[id]+'" alt="'+c.fam.name+' '+c.g+'">'+
+         '<span class="tl lv'+lv+'">LV'+lv+'</span>'+
+         (isNew[k] ? '<span class="tn">NEW</span>' : '') +
+         (isPick(id) ? '<span class="tp">PU</span>' : '') +
+         '<span class="tgd">'+c.g+'</span></button>';
+  });
+  box.innerHTML =
+    '<div class="ten">'+
+      '<p class="th"><b>10연 출하</b><span>한 로트가 통째로 들어왔습니다</span></p>'+
+      '<div class="tg">'+h+'</div>'+
+      '<p class="ts">새 카드 <b>'+fresh+'장</b> · LV3 이상 <b>'+hi+'장</b> · '+
+      '스크랩 '+S.scrap+'장 남음</p>'+
+    '</div>';
+  box.classList.remove("show"); void box.offsetWidth; box.classList.add("show");
+  var bs = box.querySelectorAll(".tc");
+  for(var i=0;i<bs.length;i++){
+    (function(b){ b.addEventListener("click", function(){ openCard(b.getAttribute("data-id")); }); })(bs[i]);
+  }
+  box.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
 function scrapPull(lv, cost){
   var pool = missingIn(lv);
   if(!pool.length) return;
@@ -4083,6 +4194,7 @@ document.getElementById("btnScrap3").addEventListener("click", function(){
 document.getElementById("btnScrap4").addEventListener("click", function(){
   scrapPull(4, SCRAP_LV4);
 });
+document.getElementById("btnTen").addEventListener("click", tenPull);
 
 var qState = null;
 
