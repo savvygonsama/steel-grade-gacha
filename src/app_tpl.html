@@ -2403,20 +2403,48 @@ var ORDER_MAX = 1;  /* 고객 요구는 하루 한 건 */
    기기 시계에 맡기면 시간대가 다른 사람마다 다른 24시간이 됩니다. 그래서
    한국시간 00시를 UTC로 못 박아 둡니다(KST = UTC+9). 창이 닫히면 코드를
    건드리지 않아도 저절로 평소대로 돌아갑니다.                          */
-var PROMO = {
-  key:  "2026-09-27",
-  from: Date.UTC(2026, 8, 26, 15, 0, 0),   /* 2026-09-27 00:00 KST */
-  to:   Date.UTC(2026, 8, 30, 15, 0, 0),   /* 2026-10-01 00:00 KST */
-  name: "POL 라인 집중 생산 기간",
-  why:  "산세 라인이 풀로 돕니다. 포오가 평소보다 두 배로 나옵니다.",
-  pick:  "poo",           /* 픽업 종족 */
-  pickX: 2,               /* 그 종족의 출현 확률 배수 */
-  pullMax: PULL_MAX,      /* 뽑기 몫은 평소대로 */
-  quizMax: QUIZ_MAX,      /* 퀴즈도 평소대로 */
-  orderMax: ORDER_MAX     /* 고객 요구도 그대로 */
-};
-function promoOn(){ var n = Date.now(); return n >= PROMO.from && n < PROMO.to; }
-function promoSoon(){ return Date.now() < PROMO.from; }
+/* 행사를 순서대로 늘어놓습니다. 지금 걸린 것(또는 다음에 올 것)이 PROMO가 됩니다.
+   앞 행사가 끝나는 순간 다음 행사로 넘어가므로, 이어 붙일 때는 from을 앞 행사의 to와 맞춥니다. */
+var PROMOS = [
+  {
+    key:  "2026-09-27",
+    from: Date.UTC(2026, 8, 26, 15, 0, 0),   /* 2026-09-27 00:00 KST */
+    to:   Date.UTC(2026, 8, 30, 15, 0, 0),   /* 2026-10-01 00:00 KST */
+    name: "POL 라인 집중 생산 기간",
+    why:  "산세 라인이 풀로 돕니다. 포오가 평소보다 두 배로 나옵니다.",
+    pick:  "poo",           /* 픽업 종족 */
+    pickX: 2,               /* 그 종족의 출현 확률 배수 */
+    pullMax: PULL_MAX,      /* 뽑기 몫은 평소대로 */
+    quizMax: QUIZ_MAX,      /* 퀴즈도 평소대로 */
+    orderMax: ORDER_MAX     /* 고객 요구도 그대로 */
+  },
+  {
+    key:  "2026-10-01",
+    from: Date.UTC(2026, 8, 30, 15, 0, 0),   /* 2026-10-01 00:00 KST — 포오가 끝나는 그 시각 */
+    to:   Date.UTC(2026, 9, 4, 15, 0, 0),    /* 2026-10-05 00:00 KST */
+    name: "선재 라인 집중 생산 기간",
+    why:  "선재 압연 라인이 풀로 돕니다. 타래가 평소보다 두 배로 나옵니다.",
+    pick:  "tarae",
+    pickX: 2,
+    pullMax: PULL_MAX,
+    quizMax: QUIZ_MAX,
+    orderMax: ORDER_MAX
+  }
+];
+/* 아직 끝나지 않은 첫 행사. 다 끝났으면 마지막 행사(끝났다는 안내용). */
+function curPromo(){
+  var n = Date.now();
+  for(var i=0;i<PROMOS.length;i++) if(n < PROMOS[i].to) return PROMOS[i];
+  return PROMOS[PROMOS.length-1];
+}
+/* PROMO 바로 뒤에 붙어 시작하는 행사 — 진행 중 배너에 예고로 씁니다 */
+function nextPromo(){
+  var i = PROMOS.indexOf(PROMO), nx = PROMOS[i+1];
+  return nx && nx.from === PROMO.to ? nx : null;
+}
+var PROMO = curPromo();
+function promoOn(){ PROMO = curPromo(); var n = Date.now(); return n >= PROMO.from && n < PROMO.to; }
+function promoSoon(){ PROMO = curPromo(); return Date.now() < PROMO.from; }
 function promoLeft(){ return Math.max(0, PROMO.to - Date.now()); }
 function promoIn(){ return Math.max(0, PROMO.from - Date.now()); }
 /* 이 두 함수만 보고 판단합니다. 상수를 직접 쓰는 곳이 없어야 원복이 확실합니다. */
@@ -2894,7 +2922,10 @@ function renderPromo(){
       (PROMO.pick ? '<span class="pku">PICK UP · ' + famName(PROMO.pick) + '</span>' : '') +
       '<span class="pt">' + PROMO.name + ' 진행 중</span>' +
       '<span class="pd">' + PROMO.why + '</span>' +
-      '<span class="pc">남은 시간 ' + fmtSpan(promoLeft()) + '</span>';
+      '<span class="pc">남은 시간 ' + fmtSpan(promoLeft()) + '</span>' +
+      (nextPromo() ? '<span class="pd">이어서 ' + nextPromo().name +
+                     (nextPromo().pick ? ' · ' + famName(nextPromo().pick) + ' 확률 ' + (nextPromo().pickX||2) + '배' : '') +
+                     '</span>' : '');
   } else if(promoSoon()){
     el.className = "promo soon show";
     el.innerHTML =
@@ -2913,21 +2944,26 @@ function renderPromo(){
    정한 시각이 되면 한 번 저절로 열리고, 그 뒤로는 위쪽 띠를 눌러 다시 봅니다.
    기기 시계에 맡기지 않도록 한국시간을 UTC로 못 박습니다(KST = UTC+9).   */
 var NOTICE = {
-  key:   "2026-09-20",
-  from:  Date.UTC(2026, 8, 19, 15, 0, 0),   /* 2026-09-20 00:00 KST */
-  until: Date.UTC(2026, 8, 27, 15, 0, 0),   /* 2026-09-28 00:00 KST — 띠를 내리는 시각 */
-  title: "업데이트 안내",
-  lead:  "부품을 만들어 자동차를 받는 길이 열렸습니다. 그리고 확인되지 않은 소문이 하나.",
+  key:   "2026-10-01",
+  from:  Date.UTC(2026, 8, 30, 15, 0, 0),   /* 2026-10-01 00:00 KST — 타래 행사와 같은 시각 */
+  until: Date.UTC(2026, 9, 4, 15, 0, 0),    /* 2026-10-05 00:00 KST — 행사가 끝나면 띠도 내립니다 */
+  title: "이벤트 안내",
+  lead:  "타래 집중 생산 기간입니다. 10월 1일부터 나흘 동안 선재 라인이 풀로 돕니다. 쌓인 스크랩 쓰는 법도 함께 정리했습니다.",
   items: [
-    {h:"LV5 전설의 캐릭터 등장…?",
-     p:"등급은 넷까지인 줄 알았습니다. 그런데 <b>다섯 번째</b>를 봤다는 사람이 나왔습니다. " +
-       "뽑기로는 안 나온다는데…?"},
-    {h:"자동차 부품을 만듭니다",
-     p:"창고에 있는 카드를 헐어 <b>부품 서른다섯 개</b>를 만듭니다. 어느 강종이 어느 부품에 " +
-       "들어가는지가 그대로 배합이 됩니다. 만들면 그 카드는 창고에서 빠지지만 도감에는 남습니다."},
-    {h:"부품을 다 모으면 자동차를 받습니다",
-     p:"서른다섯 개를 채우면 <b>여덟 차종 중 한 대</b>를 고릅니다. 받은 차는 차고에 들어가고, " +
-       "부품은 차에 들어가 사라집니다. 여덟 대를 전부 모으면 끝입니다."}
+    {h:"타래 출현 확률 두 배",
+     p:"뽑기에서 <b>타래</b>가 평소보다 <b>두 배</b>로 나옵니다. 등급별 확률은 그대로이고, " +
+       "각 등급 안에서 타래가 차지하는 몫만 커집니다. 10연 출하에도 똑같이 적용됩니다."},
+    {h:"선재 부품을 채울 기회",
+     p:"<b>베어링 · 서스펜션 스프링 · 밸브 스프링 · 볼트 · 타이로드</b>는 타래가 있어야 만들 수 있습니다. " +
+       "비어 있던 섀시 · 구동 칸을 채우기 좋은 나흘입니다."},
+    {h:"스크랩은 이렇게 씁니다",
+     p:"창고에 같은 카드가 두 장 이상 있으면 뽑기 결과에서 <b>한 장 스크랩으로</b> 바꿀 수 있습니다. " +
+       "모은 스크랩은 세 군데에 씁니다.<br>" +
+       "· <b>5장 — LV3 확정뽑기</b> : 도감에 아직 없는 LV3부터 한 장. 다 모았으면 창고에 한 장 더 쌓입니다.<br>" +
+       "· <b>10장 — LV4 확정뽑기</b> : 같은 방식으로 LV4 한 장.<br>" +
+       "· <b>20장 — 10연 출하</b> : 열 장을 한 번에, LV3 이상 한 장 보장. 하루 뽑기 횟수와 따로 돌고, " +
+       "지금은 <b>타래 두 배</b>도 그대로 붙습니다.<br>" +
+       "스크랩을 더 깊은 곳에 쓰는 길이 하나 더 있다는 소문도 있습니다…"}
   ]
 };
 function noticeOn(){ var n = Date.now(); return n >= NOTICE.from && n < NOTICE.until; }
@@ -3072,7 +3108,7 @@ function armPromo(){
 
 function checkPromo(){
   /* 공지가 열려 있으면 그 위에 겹쳐 띄우지 않습니다 */
-  if(noticeModal && noticeModal.classList.contains("show")) return;
+  if(noticeModal && noticeModal.classList.contains("show")){ renderNotice(); renderPromo(); return; }
   if(promoOn()){
     if(S.promoSeen !== PROMO.key){
       S.promoSeen = PROMO.key; save();
