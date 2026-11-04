@@ -77,7 +77,17 @@
               font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:700;
               letter-spacing:.1em;line-height:1.6;background:#FFF3DF;color:#7C4A14}
   .promo.soon .pku{background:#E2EDF7;color:#2E3843}
-  .promo .pt{display:block;font-size:15px;font-weight:700;margin-top:4px;letter-spacing:-.01em}
+  .promo.weekly{background:linear-gradient(104deg,#2F6E8E 0 38%,#245A76 38% 70%,#1B465D 70% 100%);color:#EEF6FA}
+  .promo.weekly .pl{color:#A9DCEF}
+  .promo.weekly .pc{color:#FFE3A8}
+  .promo.weekly .pku{background:#E4F3FA;color:#1B465D}
+  .promo .wk{display:flex;gap:4px;margin-top:9px}
+  .promo .wk i{flex:1;min-width:0;font-style:normal;text-align:center;padding:4px 0 5px;
+               font-size:10.5px;line-height:1.35;background:rgba(255,255,255,.1);
+               white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .promo .wk i b{display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700}
+  .promo .wk i.on{background:#FFF3DF;color:#1B465D;font-weight:700}
+  .promo .pt{display:block;font-size:15px;font-weight:700;margin-top:4px;letter-spacing:-.01em;padding:0}
   .promo .pd{display:block;font-size:12.5px;margin-top:4px;opacity:.93;line-height:1.6}
   .promo .pc{display:block;font-family:"IBM Plex Mono",monospace;font-size:12px;margin-top:8px;
              color:#F7C77E;font-variant-numeric:tabular-nums;letter-spacing:.04em}
@@ -86,6 +96,13 @@
 
   /* 00시 안내 */
   #promoModal .box{background:#7C4A14}
+  #promoModal.wk .box{background:#1B465D}
+  #promoModal.wk .pm{color:#EEF6FA;
+      background:linear-gradient(158deg,#2F6E8E 0 40%,#245A76 40% 72%,#1B465D 72% 100%)}
+  #promoModal.wk .pm .k,#promoModal.wk .pm .when{color:#A9DCEF}
+  #promoModal.wk .pm .btn-sub{color:#1B465D}
+  #promoModal.wk .pm .r span{color:#FFE3A8}
+  .pm .r.on{box-shadow:inset 0 0 0 2px #FFF3DF}
   #promoModal .x{background:rgba(255,255,255,.16);color:#FDF3E4}
   .pm{padding:22px 18px 20px;text-align:center;color:#FDF3E4;
       background:linear-gradient(158deg,#C07C2D 0 40%,#9A5D1E 40% 72%,#7C4A14 72% 100%)}
@@ -359,6 +376,10 @@
   .opt:disabled{cursor:default}
   .opt.right{border-color:var(--ok);background:rgba(46,125,83,.13);color:var(--ok)}
   .opt.wrong{border-color:var(--po);background:rgba(190,71,61,.13);color:var(--po)}
+  .opt.gone{opacity:.38;text-decoration:line-through}
+  .qhint{margin-top:4px;padding:9px 12px;font-size:12.5px;font-weight:600;background:none;
+         border:1px dashed var(--edge);color:var(--ochre);cursor:pointer}
+  .qhint:disabled{color:var(--ink-3);cursor:default}
   /* 오답·정답 뒤에 붙는 해설 */
   .qexp{margin:12px 0 0;padding:13px 15px 15px;background:var(--f2);
         border:1px solid var(--edge);border-left:3px solid var(--ochre);--cut:12px;
@@ -2551,16 +2572,63 @@ var PROMOS = [
     orderMax: ORDER_MAX
   }
 ];
-/* 아직 끝나지 않은 첫 행사. 다 끝났으면 마지막 행사(끝났다는 안내용). */
+/* ── 요일별 증산 ─────────────────────────────────
+   위의 날짜 행사가 없는 날에는 요일마다 라인 하나가 증산합니다.
+   하루는 한국시간 00시에 바뀝니다. 날짜 행사가 걸리면 그쪽이 우선입니다.
+   순서: 일 월 화 수 목 금 토 (Date.getUTCDay 순서와 같음)               */
+var WEEKLY = [
+  { tag:"일", chip:"퀴즈 5회", eff:"퀴즈 하루 5회", name:"일요일 · 안전 교육의 날",
+    why:"라인을 세우고 교육을 합니다. 철강 퀴즈를 하루 다섯 번까지 풀 수 있습니다.", quizMax: 5 },
+  { tag:"월", chip:"포오", eff:"포오 2배", name:"월요일 · 산세 라인 증산",
+    why:"산세 라인이 풀로 돕니다. 포오가 평소보다 두 배로 나옵니다.", pick:"poo" },
+  { tag:"화", chip:"씨알", eff:"씨알 2배", name:"화요일 · 냉연 라인 증산",
+    why:"냉간 압연 라인이 풀로 돕니다. 씨알이 평소보다 두 배로 나옵니다.", pick:"ssial" },
+  { tag:"수", chip:"도금이", eff:"도금이 2배", name:"수요일 · 도금 라인 증산",
+    why:"용융아연도금 라인이 풀로 돕니다. 도금이가 평소보다 두 배로 나옵니다.", pick:"ga" },
+  { tag:"목", chip:"타래", eff:"타래 2배", name:"목요일 · 선재 라인 증산",
+    why:"선재 압연 라인이 풀로 돕니다. 타래가 평소보다 두 배로 나옵니다.", pick:"tarae" },
+  { tag:"금", chip:"퀴즈 힌트", eff:"퀴즈 문제마다 힌트", name:"금요일 · 퀴즈 힌트의 날",
+    why:"철강 퀴즈 문제마다 힌트 버튼이 생깁니다. 누르면 틀린 보기 하나가 지워집니다.", hint:true },
+  { tag:"토", chip:"요구 2건", eff:"고객 요구 하루 2건", name:"토요일 · 주말 특근",
+    why:"주말에도 출하가 이어집니다. 고객 요구를 하루 두 건까지 받습니다.", orderMax: 2 }
+];
+var W_DAY = 24 * 60 * 60 * 1000, W_KST = 9 * 60 * 60 * 1000;
+/* t가 속한 한국 날짜의 00시(UTC 밀리초) */
+function kstDayStart(t){ var k = t + W_KST; return k - (((k % W_DAY) + W_DAY) % W_DAY) - W_KST; }
+function kstWeekday(t){ return new Date(kstDayStart(t) + W_KST).getUTCDay(); }
+function weeklyAt(t){
+  var from = kstDayStart(t), w = WEEKLY[kstWeekday(t)], d = new Date(from + W_KST);
+  return {
+    key: "w-" + d.getUTCFullYear() + "-" + (d.getUTCMonth()+1) + "-" + d.getUTCDate(),
+    weekly: true, wd: kstWeekday(t),
+    from: from, to: from + W_DAY,
+    name: w.name, why: w.why,
+    pick: w.pick || "", pickX: 2,
+    pullMax: PULL_MAX,
+    quizMax: w.quizMax || QUIZ_MAX,
+    orderMax: w.orderMax || ORDER_MAX,
+    hint: !!w.hint
+  };
+}
+/* 지금 걸린 날짜 행사. 없으면 오늘의 요일 증산. */
 function curPromo(){
   var n = Date.now();
-  for(var i=0;i<PROMOS.length;i++) if(n < PROMOS[i].to) return PROMOS[i];
-  return PROMOS[PROMOS.length-1];
+  for(var i=0;i<PROMOS.length;i++) if(n >= PROMOS[i].from && n < PROMOS[i].to) return PROMOS[i];
+  return weeklyAt(n);
 }
 /* PROMO 바로 뒤에 붙어 시작하는 행사 — 진행 중 배너에 예고로 씁니다 */
 function nextPromo(){
-  var i = PROMOS.indexOf(PROMO), nx = PROMOS[i+1];
-  return nx && nx.from === PROMO.to ? nx : null;
+  for(var i=0;i<PROMOS.length;i++) if(PROMOS[i].from === PROMO.to) return PROMOS[i];
+  return weeklyAt(PROMO.to);
+}
+/* 사흘 안에 시작하는 날짜 행사 — 요일 증산 띠에 미리 알립니다 */
+function upcomingPromo(){
+  var n = Date.now();
+  for(var i=0;i<PROMOS.length;i++){
+    var p = PROMOS[i];
+    if(p.from > n && p.from - n <= 3 * W_DAY && p.from !== PROMO.to) return p;
+  }
+  return null;
 }
 var PROMO = curPromo();
 function promoOn(){ PROMO = curPromo(); var n = Date.now(); return n >= PROMO.from && n < PROMO.to; }
@@ -2571,6 +2639,7 @@ function promoIn(){ return Math.max(0, PROMO.from - Date.now()); }
 function pullMax(){ return promoOn() ? PROMO.pullMax : PULL_MAX; }
 function quizMax(){ return promoOn() ? PROMO.quizMax : QUIZ_MAX; }
 function orderMax(){ return promoOn() ? PROMO.orderMax : ORDER_MAX; }
+function quizHint(){ return promoOn() && !!PROMO.hint; }   /* 퀴즈 문제마다 힌트 버튼 */
 
 function today(){ var d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
 /* ── 진행 저장 ─────────────────────────────────────
@@ -2836,7 +2905,7 @@ function tick(){
   qb.disabled = ql <= 0;
   qb.innerHTML = ql > 0
     ? '<span class="bt">철강 퀴즈 · 오늘 '+ql+'회 남음</span>' +
-      '<span class="bw">5문제 다 맞추면 뽑기 +1</span>'
+      '<span class="bw">5문제 다 맞추면 뽑기 +1' + (quizHint() ? ' · 오늘은 힌트 있음' : '') + '</span>'
     : '<span class="bt">오늘 퀴즈를 다 썼습니다</span>' +
       '<span class="bw">'+fmtWhen(S.quizAt)+' 갱신</span>';
 }
@@ -3005,6 +3074,7 @@ function fmtSpan(ms){
   /* 하루짜리 행사라 「1일 0시간」보다 「24시간 0분」이 읽기 낫습니다 */
   return h >= 1 ? h + "시간 " + (m % 60) + "분" : m + "분";
 }
+function promoDay(t){ var d = new Date(t + W_KST); return (d.getUTCMonth()+1) + "월 " + d.getUTCDate() + "일"; }  /* 한국 날짜로 */
 function promoWhen(){
   var f = function(t){
     var d = new Date(t), h = d.getHours(), m = d.getMinutes();
@@ -3023,6 +3093,8 @@ function promoRows(){
     a.push({k:"뽑기", was:"하루 " + PULL_MAX + "회", now:"하루 " + PROMO.pullMax + "회"});
   if(PROMO.quizMax > QUIZ_MAX)
     a.push({k:"철강 퀴즈", was:"하루 " + QUIZ_MAX + "회", now:"하루 " + PROMO.quizMax + "회"});
+  if(PROMO.hint)
+    a.push({k:"철강 퀴즈", was:"힌트 없음", now:"문제마다 힌트"});
   if(PROMO.orderMax > ORDER_MAX)
     a.push({k:"고객 요구", was:"하루 " + ORDER_MAX + "건", now:"하루 " + PROMO.orderMax + "건"});
   return a;
@@ -3039,6 +3111,20 @@ function renderPromo(){
   if(noticeOn() && promoOn()){
     el.className = "promo";
     el.innerHTML = "";
+  } else if(promoOn() && PROMO.weekly){
+    var nx = nextPromo(), up = upcomingPromo();
+    el.className = "promo weekly show";
+    el.innerHTML =
+      '<span class="pl">WEEKLY · 오늘의 증산</span>' +
+      (PROMO.pick ? '<span class="pku">PICK UP · ' + famName(PROMO.pick) + '</span>' : '') +
+      '<span class="pt">' + PROMO.name + '</span>' +
+      '<span class="pd">' + PROMO.why + '</span>' +
+      '<span class="wk">' + WEEKLY.map(function(w, i){
+        return '<i' + (i === PROMO.wd ? ' class="on"' : '') + '><b>' + w.tag + '</b>' + w.chip + '</i>';
+      }).join("") + '</span>' +
+      '<span class="pc">남은 시간 ' + fmtSpan(promoLeft()) +
+        (nx ? ' · 내일 ' + nx.name.replace(/^.요일 · /, "") : '') + '</span>' +
+      (up ? '<span class="pd">예고 · ' + promoDay(up.from) + '부터 ' + up.name + '</span>' : '');
   } else if(promoOn()){
     el.className = "promo show";
     el.innerHTML =
@@ -3244,8 +3330,33 @@ function closePromo(){
   promoBox.innerHTML = "";
   if(promoLast && promoLast.focus) promoLast.focus();
 }
+var WEEKLY_INTRO = "sgg_weekly_intro";
+function weeklyIntroSeen(){ try{ return localStorage.getItem(WEEKLY_INTRO) === "1"; }catch(e){ return true; } }
+function openWeeklyIntro(){
+  try{ localStorage.setItem(WEEKLY_INTRO, "1"); }catch(e){}
+  promoLast = document.activeElement;
+  promoModal.classList.add("wk");
+  promoBox.innerHTML =
+    '<span class="k">WEEKLY</span>' +
+    '<h3>요일별 증산을 시작합니다</h3>' +
+    '<p class="sub">요일마다 라인 하나가 풀로 돕니다. 한국시간 0시에 바뀌고,<br>따로 정한 행사 기간에는 그 행사가 우선합니다.</p>' +
+    '<div class="rows">' +
+      [1,2,3,4,5,6,0].map(function(i){
+        var w = WEEKLY[i];
+        return '<div class="r' + (i === PROMO.wd ? ' on' : '') + '"><b>' + w.tag + ' · ' +
+               w.name.replace(/^.요일 · /, "") + '</b><span>' + w.eff + '</span></div>';
+      }).join("") +
+    '</div>' +
+    '<p class="when">오늘은 ' + PROMO.name + '<br>남은 시간 ' + fmtSpan(promoLeft()) + '</p>' +
+    '<button class="btn-sub cut" id="promoGo" type="button">확인</button>';
+  promoModal.classList.add("show");
+  document.body.style.overflow = "hidden";
+  document.getElementById("promoGo").addEventListener("click", closePromo);
+  document.getElementById("promoGo").focus();
+}
 function openPromo(){
   promoLast = document.activeElement;
+  promoModal.classList.remove("wk");
   promoBox.innerHTML =
     '<span class="k">LIMITED</span>' +
     '<h3>' + PROMO.name + '</h3>' +
@@ -3289,7 +3400,17 @@ function armPromo(){
 function checkPromo(){
   /* 공지가 열려 있으면 그 위에 겹쳐 띄우지 않습니다 */
   if(noticeModal && noticeModal.classList.contains("show")){ renderNotice(); renderPromo(); return; }
-  if(promoOn()){
+  if(promoOn() && PROMO.weekly){
+    /* 매일 바뀌는 증산이라 창은 처음 한 번(요일표 안내)만 띄우고,
+       그 뒤로는 그날 처음 열 때 아래 알림 띠로만 알립니다 */
+    if(!weeklyIntroSeen()){
+      S.promoSeen = PROMO.key; save();
+      openWeeklyIntro();
+    } else if(S.promoSeen !== PROMO.key){
+      S.promoSeen = PROMO.key; save();
+      showToast(PROMO.why, "오늘의 증산 · " + PROMO.name);
+    }
+  } else if(promoOn()){
     if(S.promoSeen !== PROMO.key){
       S.promoSeen = PROMO.key; save();
       openPromo();
@@ -4498,6 +4619,21 @@ function renderQ(){
     });
     o.appendChild(b);
   });
+  /* 힌트의 날: 문제마다 한 번, 틀린 보기 하나를 지웁니다 */
+  if(quizHint()){
+    var hb = document.createElement("button");
+    hb.className = "qhint"; hb.type = "button"; hb.textContent = "💡 힌트 · 틀린 보기 하나 지우기";
+    hb.addEventListener("click", function(){
+      var all = o.querySelectorAll("button.opt"), wrong = [];
+      for(var k=0;k<all.length;k++) if(k !== q.a && !all[k].disabled) wrong.push(k);
+      if(wrong.length){
+        var g = all[wrong[Math.floor(Math.random()*wrong.length)]];
+        g.classList.add("gone"); g.disabled = true;
+      }
+      hb.disabled = true; hb.textContent = "💡 힌트를 썼습니다";
+    });
+    o.appendChild(hb);
+  }
 }
 
 /* 답한 뒤 해설. 틀렸으면 왜 그런지를 읽고 넘어가게 합니다. */
