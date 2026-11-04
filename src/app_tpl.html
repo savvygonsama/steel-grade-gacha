@@ -376,6 +376,10 @@
   .opt:disabled{cursor:default}
   .opt.right{border-color:var(--ok);background:rgba(46,125,83,.13);color:var(--ok)}
   .opt.wrong{border-color:var(--po);background:rgba(190,71,61,.13);color:var(--po)}
+  .opt.gone{opacity:.38;text-decoration:line-through}
+  .qhint{margin-top:4px;padding:9px 12px;font-size:12.5px;font-weight:600;background:none;
+         border:1px dashed var(--edge);color:var(--ochre);cursor:pointer}
+  .qhint:disabled{color:var(--ink-3);cursor:default}
   /* 오답·정답 뒤에 붙는 해설 */
   .qexp{margin:12px 0 0;padding:13px 15px 15px;background:var(--f2);
         border:1px solid var(--edge);border-left:3px solid var(--ochre);--cut:12px;
@@ -2583,8 +2587,8 @@ var WEEKLY = [
     why:"용융아연도금 라인이 풀로 돕니다. 도금이가 평소보다 두 배로 나옵니다.", pick:"ga" },
   { tag:"목", chip:"타래", eff:"타래 2배", name:"목요일 · 선재 라인 증산",
     why:"선재 압연 라인이 풀로 돕니다. 타래가 평소보다 두 배로 나옵니다.", pick:"tarae" },
-  { tag:"금", chip:"이지", eff:"이지 2배", name:"금요일 · 전기도금 라인 증산",
-    why:"전기아연도금 라인이 풀로 돕니다. 이지가 평소보다 두 배로 나옵니다.", pick:"eg" },
+  { tag:"금", chip:"퀴즈 힌트", eff:"퀴즈 문제마다 힌트", name:"금요일 · 퀴즈 힌트의 날",
+    why:"철강 퀴즈 문제마다 힌트 버튼이 생깁니다. 누르면 틀린 보기 하나가 지워집니다.", hint:true },
   { tag:"토", chip:"요구 2건", eff:"고객 요구 하루 2건", name:"토요일 · 주말 특근",
     why:"주말에도 출하가 이어집니다. 고객 요구를 하루 두 건까지 받습니다.", orderMax: 2 }
 ];
@@ -2602,7 +2606,8 @@ function weeklyAt(t){
     pick: w.pick || "", pickX: 2,
     pullMax: PULL_MAX,
     quizMax: w.quizMax || QUIZ_MAX,
-    orderMax: w.orderMax || ORDER_MAX
+    orderMax: w.orderMax || ORDER_MAX,
+    hint: !!w.hint
   };
 }
 /* 지금 걸린 날짜 행사. 없으면 오늘의 요일 증산. */
@@ -2634,6 +2639,7 @@ function promoIn(){ return Math.max(0, PROMO.from - Date.now()); }
 function pullMax(){ return promoOn() ? PROMO.pullMax : PULL_MAX; }
 function quizMax(){ return promoOn() ? PROMO.quizMax : QUIZ_MAX; }
 function orderMax(){ return promoOn() ? PROMO.orderMax : ORDER_MAX; }
+function quizHint(){ return promoOn() && !!PROMO.hint; }   /* 퀴즈 문제마다 힌트 버튼 */
 
 function today(){ var d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
 /* ── 진행 저장 ─────────────────────────────────────
@@ -2899,7 +2905,7 @@ function tick(){
   qb.disabled = ql <= 0;
   qb.innerHTML = ql > 0
     ? '<span class="bt">철강 퀴즈 · 오늘 '+ql+'회 남음</span>' +
-      '<span class="bw">5문제 다 맞추면 뽑기 +1</span>'
+      '<span class="bw">5문제 다 맞추면 뽑기 +1' + (quizHint() ? ' · 오늘은 힌트 있음' : '') + '</span>'
     : '<span class="bt">오늘 퀴즈를 다 썼습니다</span>' +
       '<span class="bw">'+fmtWhen(S.quizAt)+' 갱신</span>';
 }
@@ -3087,6 +3093,8 @@ function promoRows(){
     a.push({k:"뽑기", was:"하루 " + PULL_MAX + "회", now:"하루 " + PROMO.pullMax + "회"});
   if(PROMO.quizMax > QUIZ_MAX)
     a.push({k:"철강 퀴즈", was:"하루 " + QUIZ_MAX + "회", now:"하루 " + PROMO.quizMax + "회"});
+  if(PROMO.hint)
+    a.push({k:"철강 퀴즈", was:"힌트 없음", now:"문제마다 힌트"});
   if(PROMO.orderMax > ORDER_MAX)
     a.push({k:"고객 요구", was:"하루 " + ORDER_MAX + "건", now:"하루 " + PROMO.orderMax + "건"});
   return a;
@@ -4611,6 +4619,21 @@ function renderQ(){
     });
     o.appendChild(b);
   });
+  /* 힌트의 날: 문제마다 한 번, 틀린 보기 하나를 지웁니다 */
+  if(quizHint()){
+    var hb = document.createElement("button");
+    hb.className = "qhint"; hb.type = "button"; hb.textContent = "💡 힌트 · 틀린 보기 하나 지우기";
+    hb.addEventListener("click", function(){
+      var all = o.querySelectorAll("button.opt"), wrong = [];
+      for(var k=0;k<all.length;k++) if(k !== q.a && !all[k].disabled) wrong.push(k);
+      if(wrong.length){
+        var g = all[wrong[Math.floor(Math.random()*wrong.length)]];
+        g.classList.add("gone"); g.disabled = true;
+      }
+      hb.disabled = true; hb.textContent = "💡 힌트를 썼습니다";
+    });
+    o.appendChild(hb);
+  }
 }
 
 /* 답한 뒤 해설. 틀렸으면 왜 그런지를 읽고 넘어가게 합니다. */
