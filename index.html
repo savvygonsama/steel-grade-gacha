@@ -5007,6 +5007,17 @@ var TOON = [
       { img: "webtoon/ep05-6.webp", w: 1000, h: 1500 },
       { img: "webtoon/ep05-7.webp", w: 1000, h: 1500 },
       { img: "webtoon/ep05-8.webp", w: 1000, h: 1500 }
+    ] },
+  { id: "ep06", no: "6화", title: "막대 과자의 날", date: "2026.11.11", thumb: "webtoon/th-ep06.webp",
+    note: "※ 용융아연도금강판은 녹인 아연 욕조에 강판을 담갔다 꺼내 만들고, 입혀진 두께가 고른지가 품질입니다.",
+    pages: [
+      { img: "webtoon/ep06-1.webp", w: 1000, h: 1500 },
+      { img: "webtoon/ep06-2.webp", w: 1000, h: 1500 },
+      { img: "webtoon/ep06-3.webp", w: 1000, h: 1500 },
+      { img: "webtoon/ep06-4.webp", w: 1000, h: 1500 },
+      { img: "webtoon/ep06-5.webp", w: 1000, h: 1500 },
+      { img: "webtoon/ep06-6.webp", w: 1000, h: 1500 },
+      { img: "webtoon/ep06-7.webp", w: 1000, h: 1500 }
     ] }
 ];
 var TOON_SEEN = "sgg_toon_seen";
@@ -5074,6 +5085,8 @@ function openToonView(i){
   }
   toonView.classList.add("show");
   document.body.style.overflow = "hidden";
+  /* 아래 알림 띠(오늘의 증산 등)가 뷰어 버튼을 가리지 않게 접습니다 */
+  var tst = document.getElementById("toast"); if(tst) tst.classList.remove("show");
   if(i > toonSeenIdx()){ try{ localStorage.setItem(TOON_SEEN, t.id); }catch(e){} }
   renderToonBtn();
 }
