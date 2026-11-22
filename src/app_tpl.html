@@ -222,6 +222,47 @@
                     border:1px solid var(--edge);opacity:.85}
   .btn-ten:disabled .sc{color:var(--ink-3)}
 
+  /* 스크랩 교환소 */
+  .btn-exch{width:100%;margin-top:8px;padding:11px 8px 12px;--cut:12px;text-align:center;
+            line-height:1.35;color:var(--ink);background:var(--f2);
+            border:1px solid var(--edge)}
+  .btn-exch .sl{display:block;font-size:14px;font-weight:700;letter-spacing:-.01em;
+                color:var(--ochre)}
+  .btn-exch .sn{display:block;font-size:11.5px;margin-top:1px;color:var(--ink-2)}
+  .btn-exch .sc{display:block;font-family:"IBM Plex Mono",monospace;font-size:11.5px;
+                margin-top:4px;color:var(--ink-3);letter-spacing:.03em;
+                font-variant-numeric:tabular-nums}
+  .btn-exch:hover:not(:disabled){background:var(--f3)}
+  .btn-exch:active:not(:disabled){transform:translateY(2px)}
+  .btn-exch:disabled{cursor:default;color:var(--ink-3);opacity:.85}
+
+  .exgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:13px}
+  .ex{position:relative;padding:0 0 4px;background:var(--f2);border:1px solid var(--c);
+      color:var(--ink);overflow:hidden;--cut:9px;text-align:center;
+      clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),
+              calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+  .ex img{width:100%;height:auto;display:block}
+  .ex .exg{display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
+           margin-top:4px}
+  .ex .exn{display:block;font-size:9.5px;color:var(--ink-3);line-height:1.4}
+  .ex .exc{display:block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+           font-weight:600;color:var(--ochre);margin-top:2px}
+  .ex .exw{position:absolute;top:0;left:0;z-index:2;font-size:9px;font-weight:700;
+           padding:2px 6px 3px;background:var(--po);color:#FFF1EE;line-height:1.2;
+           clip-path:polygon(0 0,100% 0,100% 62%,74% 100%,0 100%)}
+  .ex.want{box-shadow:inset 0 0 0 2px var(--po)}
+  .ex:hover:not(:disabled){background:var(--f3)}
+  .ex.no{opacity:.42;cursor:default}
+  .ex.no .exc{color:var(--ink-3)}
+
+  /* 아이템 장착 화면의 효과 설명 */
+  .pkfx{margin:8px 0 0;font-size:12px;color:var(--ink-2);line-height:1.65}
+  .pkfx b{color:var(--ink)}
+  .pknow{margin:7px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11.5px;
+         color:var(--ochre);letter-spacing:.02em;line-height:1.5}
+  .icell .ifx{display:block;font-family:"IBM Plex Mono",monospace;font-size:8.5px;
+              font-weight:600;letter-spacing:.06em;color:var(--ok);margin-top:2px}
+
   /* 10연 결과 */
   .ten{padding:14px 13px 15px}
   .ten .th{margin:0 0 11px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
@@ -970,6 +1011,7 @@
   <button class="btn-scrap cut" id="btnScrap4" type="button"></button>
 </div>
 <button class="btn-ten cut" id="btnTen" type="button"></button>
+<button class="btn-exch cut" id="btnExch" type="button"></button>
 <button class="btn-quiz cut" id="btnQuiz" type="button"></button>
 <button class="btn-bell cut" id="btnBell" type="button"></button>
 
@@ -985,7 +1027,9 @@
 
 <div class="seco">
   <h2>아이템</h2><span class="cnt" id="secItems">0 / 0</span><span class="ln"></span>
-  <p>소재에 걸어 두는 보증 항목입니다. 고객 요구에 맞는 소재로 회신하면 얻습니다.</p>
+  <p>소재에 걸어 두는 보증 항목입니다. 고객 요구에 맞는 소재로 회신하면 얻습니다.
+     <b>걸어 둔 소재는 부품을 만들어도 창고에서 닳지 않습니다.</b>
+     막히는 자리가 달라질 때마다 눌러서 옮겨 거세요.</p>
 </div>
 <div class="igrid" id="items"></div>
 
@@ -999,8 +1043,8 @@
 
 <div class="seco">
   <h2>차고</h2><span class="cnt" id="secCars">0 / 8</span><span class="ln"></span>
-  <p>부품을 전부 만들면 여덟 중 한 대를 받습니다. 고른 한 대만 열리고
-     나머지 일곱은 잠긴 채로 남습니다.</p>
+  <p>부품을 전부 만들면 여덟 중 한 대를 받습니다. 받은 부품은 차에 들어가고,
+     다시 서른다섯 개를 만들면 <b>다음 한 대</b>를 받습니다. 여덟 대까지 갑니다.</p>
 </div>
 <div class="ggrid" id="garage"></div>
 
@@ -3220,6 +3264,35 @@ var NOTICES = [
       {h:"틀려도 남는 공부",
        p:"틀린 문제에는 해설이 붙습니다. 소둔, 도금, 강도 등급 — 철강 현장에서 그대로 쓰는 얘기입니다."}
     ]
+  },
+  {
+    key:   "2026-11-22",
+    from:  Date.UTC(2026, 10, 21, 15, 0, 0),   /* 2026-11-22 00:00 KST */
+    until: Date.UTC(2026, 10, 30, 15, 0, 0),   /* 2026-12-01 00:00 KST */
+    ev:    false,                              /* 행사가 아니라 기능 안내입니다 */
+    title: "자재 운영 개선",
+    lead:  "두 대째부터 차가 안 나온다는 말이 많았습니다. 창고 쪽을 두 군데 고쳤습니다. 보증 항목이 하는 일이 생기고, 스크랩 교환소가 열립니다.",
+    items: [
+      {h:"보증 항목을 걸어 둔 소재는 닳지 않습니다",
+       p:"지금까지 보증 항목은 카드에 그림만 붙고 하는 일이 없었습니다. 이제 <b>걸어 둔 소재는 " +
+         "부품을 만들어도 창고에서 빠지지 않습니다.</b> 한 장만 쥐고 있으면 그 강종이 들어가는 " +
+         "칸을 몇 번이든 채웁니다. 선행개발 큐피와 같은 방식입니다.<br>" +
+         "그래서 <b>한 번 걸고 끝나는 물건이 아닙니다.</b> 차 한 대를 끝낼 때마다 막히는 자리가 " +
+         "달라지니, 그때그때 옮겨 거세요. 아이템 칸을 누르면 지금 걸린 자리가 보이고 " +
+         "<b>다른 소재로 옮기거나 떼어 둘 수 있습니다.</b> 떼어도 항목은 그대로 남습니다."},
+      {h:"스크랩 교환소를 엽니다",
+       p:"뽑기는 확률이라, 딱 한 강종이 모자라 부품이 막히는 일이 생깁니다. 이제 스크랩을 내고 " +
+         "<b>원하는 강종 한 장</b>을 창고에 받아 갈 수 있습니다.<br>" +
+         "· <b>LV1 2장 · LV2 3장 · LV3 6장 · LV4 12장</b><br>" +
+         "· <b>도감에 이미 올린 강종만</b> 팝니다. 처음 만나는 건 뽑기의 몫입니다<br>" +
+         "· 지금 <b>막힌 칸이 기다리는 강종</b>에는 붉은 표가 붙고 맨 앞으로 옵니다<br>" +
+         "크랭크샤프트는 비조질 한 장으로만, 연료탱크는 편면도금 한 장으로만 채워집니다. " +
+         "그런 자리가 열일곱 군데라 두 번째 차부터는 운만으로 끝나지 않았습니다."},
+      {h:"차고는 여덟 대까지 갑니다",
+       p:"차고 안내가 「고른 한 대만 열리고 나머지 일곱은 잠긴 채로 남습니다」로 돼 있었습니다. " +
+         "<b>잘못된 안내였습니다.</b> 부품 서른다섯 개를 다시 만들면 다음 한 대를 받고, " +
+         "그렇게 <b>여덟 대까지</b> 갑니다. 문구를 고쳤습니다. 헷갈리게 해서 죄송합니다."}
+    ]
   }
 ];
 function curNotice(){
@@ -3238,10 +3311,14 @@ function renderNotice(){
     el.innerHTML = '<button type="button" id="noticeGo">' +
       '<span class="nl">NOTICE</span>' +
       '<span class="ntt">' + NOTICE.title + '</span>' +
-      (promoOn() && PROMO.pick ? '<span class="npk">PICK UP · ' + famName(PROMO.pick) + '</span>' : '') +
+      (NOTICE.ev !== false && promoOn() && PROMO.pick
+        ? '<span class="npk">PICK UP · ' + famName(PROMO.pick) + '</span>' : '') +
       '<span class="nd">' + NOTICE.lead + '</span>' +
-      (promoOn() ? '<span class="nc">남은 시간 ' + fmtSpan(promoLeft()) +
-                   (nextPromo() ? ' · 이어서 ' + nextPromo().name : '') + '</span>' : '') +
+      /* 행사 공지일 때만 남은 시간을 붙입니다. 기능 안내에 붙으면
+         그 안내가 곧 내려가는 것처럼 읽힙니다. */
+      (NOTICE.ev !== false && promoOn()
+        ? '<span class="nc">남은 시간 ' + fmtSpan(promoLeft()) +
+          (nextPromo() ? ' · 이어서 ' + nextPromo().name : '') + '</span>' : '') +
       '<span class="nmore">자세히 보기</span></button>';
     document.getElementById("noticeGo").addEventListener("click", openNotice);
   } else {
@@ -3561,6 +3638,22 @@ function findItem(k){ var r=null; ITEMS.forEach(function(i){ if(i.key===k) r=i; 
 function itImg(k){ return IMG_ITEM[k] ? '<img src="'+IMG_ITEM[k]+'" alt="">' : '<span class="ino">?</span>'; }
 function findOrder(k){ var r=null; ORDERS.forEach(function(o){ if(o.item===k) r=o; }); return r; }
 function itemsOf(id){ var a=[]; ITEMS.forEach(function(i){ if(S.items[i.key]===id) a.push(i); }); return a; }
+/* ── 아이템 효과 ───────────────────────────────────
+   보증 항목을 걸어 둔 소재는 부품을 만들어도 창고에서 닳지 않습니다.
+   한 장만 쥐고 있으면 그 강종이 들어가는 칸을 몇 번이든 채웁니다.
+   그래서 아이템은 「어디에 걸어 둘 것인가」를 계속 다시 정하는 물건이 됩니다.
+   차 한 대를 끝낼 때마다 막히는 자리가 달라지니, 그때그때 옮겨 걸면 됩니다. */
+function itemFree(id){
+  if(!id || id === QP_ID) return false;
+  for(var k in S.items) if(S.items.hasOwnProperty(k) && S.items[k] === id) return true;
+  return false;
+}
+/* 이 소재에 걸린 아이템을 뗍니다. 아이템은 그대로 보유하고 자리만 비웁니다. */
+function unequip(key){
+  if(!S.items[key] || S.items[key] === 1) return false;
+  S.items[key] = 1; save();
+  return true;
+}
 function itemCount(){ return Object.keys(S.items).length; }
 
 function dayHash(){
@@ -3668,8 +3761,9 @@ function renderItems(){
       el.setAttribute("aria-label", it.tag+" 상세");
       el.innerHTML = itImg(it.key)+
                      '<span class="inm">'+it.tag+'</span>'+
-                     '<span class="iby">'+(c ? sh(c.fam)+" "+c.g : it.name)+'</span>';
-      el.addEventListener("click", function(){ if(c) openCard(cid); else openPickTarget(it.key); });
+                     '<span class="iby">'+(c ? sh(c.fam)+" "+c.g : "걸 곳을 고르세요")+'</span>'+
+                     (c ? '<span class="ifx">안 닳음</span>' : '');
+      el.addEventListener("click", function(){ openPickTarget(it.key); });
     } else {
       el.innerHTML = '<span class="ilock">?</span><span class="inm">'+it.name+'</span>'+
                      '<span class="iby">'+it.scope+'</span>';
@@ -3753,7 +3847,12 @@ function partPlan(p, picks){
     } else if(free){
       got = QP_ID;
     } else {
+      /* 아이템을 걸어 둔 소재는 닳지 않으니 가장 먼저 씁니다 */
       for(j = 0; j < sl.any.length; j++){
+        var fid = sl.any[j];
+        if(itemFree(fid) && stockOf(fid) > 0){ got = fid; break; }
+      }
+      if(!got) for(j = 0; j < sl.any.length; j++){
         var id = sl.any[j], left = stockOf(id) - (tmp[id] || 0);
         if(left <= 0) continue;
         if(!got){ got = id; continue; }
@@ -3762,7 +3861,8 @@ function partPlan(p, picks){
       }
     }
     if(!got) return null;
-    if(got !== QP_ID) tmp[got] = (tmp[got] || 0) + 1;   /* QP는 닳지 않습니다 */
+    /* QP와 아이템을 건 소재는 닳지 않으니 같은 부품 안에서 몇 칸이든 씁니다 */
+    if(got !== QP_ID && !itemFree(got)) tmp[got] = (tmp[got] || 0) + 1;
     out.push(got);
   }
   return out;
@@ -3794,7 +3894,7 @@ function craft(key, picks){
   if(!p || partDone(p)) return false;
   var use = partPlan(p, picks);
   if(!use) return false;
-  use.forEach(function(id){ if(id !== QP_ID) addStock(id, -1); });
+  use.forEach(function(id){ if(id !== QP_ID && !itemFree(id)) addStock(id, -1); });
   S.parts[key] = {at:Date.now(), use:use};
   save();
   return true;
@@ -4237,8 +4337,81 @@ function judge(key, btn){
 }
 
 /* 2단계 — 어느 소재에 붙일지 */
+/* 교환소 화면. 지금 막혀 있는 칸이 요구하는 강종을 맨 위로 올려 줍니다. */
+function openExch(){
+  pickLast = document.activeElement;
+  pickModal.classList.add("show");
+  document.body.style.overflow = "hidden";
+  pickModal.setAttribute("aria-label", "스크랩 교환소");
+
+  /* 지금 만들 수 없는 부품이 기다리는 강종 — 이게 보통 사려는 것입니다 */
+  var want = {};
+  PARTS.forEach(function(pt){
+    if(partDone(pt) || partReady(pt)) return;
+    pt.need.forEach(function(sl){
+      if(slotOk(sl)) return;
+      sl.any.forEach(function(id){ if(S.owned[id]) want[id] = 1; });
+    });
+  });
+
+  var draw = function(){
+    var list = exchList().sort(function(a, b){
+      var wa = want[a] ? 0 : 1, wb = want[b] ? 0 : 1;
+      if(wa !== wb) return wa - wb;
+      return exchCost(b) - exchCost(a);
+    });
+    var html = '<button class="x" type="button" id="pickX" aria-label="닫기">&times;</button>'+
+      '<div class="pkhead"><p class="pkt">스크랩 교환소</p>'+
+      '<p class="pka">모자란 강종을 한 장 받아 갑니다</p>'+
+      '<p class="pkfx">중복으로 쌓인 스크랩을 내고 <b>원하는 강종 한 장</b>을 창고에 넣습니다. '+
+        '도감에 이미 올린 강종만 팝니다. 처음 만나는 건 뽑기의 몫입니다.</p>'+
+      '<p class="pknow">보유 스크랩 <b>'+S.scrap+'장</b>'+
+        (Object.keys(want).length ? ' · 지금 막힌 칸이 기다리는 강종을 맨 앞에 뒀습니다' : '')+
+      '</p></div>';
+    if(!list.length){
+      html += '<p class="pkempty">아직 도감에 올린 강종이 없습니다.<br>먼저 뽑기로 만나야 합니다.</p>';
+    } else {
+      html += '<div class="exgrid">';
+      list.forEach(function(id){
+        var c = findChar(id), cost = exchCost(id), can = S.scrap >= cost;
+        html += '<button class="ex cut'+(can?"":" no")+(want[id]?" want":"")+'" type="button" '+
+          'data-id="'+id+'"'+(can?"":" disabled")+' style="--c:'+c.fam.c+'" '+
+          'aria-label="'+c.fam.name+' '+c.g+' 스크랩 '+cost+'장">'+
+          '<img src="'+IMG[id]+'" alt="">'+
+          (want[id]?'<span class="exw">막힌 칸</span>':'')+
+          '<span class="exg">'+c.g+'</span>'+
+          '<span class="exn">'+sh(c.fam)+' · 창고 '+stockOf(id)+'</span>'+
+          '<span class="exc">스크랩 '+cost+'</span></button>';
+      });
+      html += '</div>';
+    }
+    html += '<div class="pkres" id="pkres"></div>';
+    pickBox.innerHTML = html;
+    document.getElementById("pickX").addEventListener("click", closePick);
+    var bs = pickBox.querySelectorAll(".ex[data-id]");
+    for(var i=0;i<bs.length;i++){
+      (function(b){
+        b.addEventListener("click", function(){
+          var id = b.getAttribute("data-id"), c = findChar(id), cost = exchCost(id);
+          if(!buyCard(id)) return;
+          refresh();
+          draw();
+          var r = document.getElementById("pkres");
+          r.className = "pkres ok";
+          r.innerHTML = '<b>'+c.fam.name+' '+c.g+' 한 장</b>'+
+            '<p>스크랩 '+cost+'장을 냈습니다. 창고에 '+stockOf(id)+'장 · 남은 스크랩 '+S.scrap+'장.</p>';
+          r.scrollIntoView({behavior:"smooth", block:"nearest"});
+        });
+      })(bs[i]);
+    }
+    document.getElementById("pickX").focus();
+  };
+  draw();
+}
+
 function openPickTarget(key){
   var it = findItem(key);
+  pickModal.setAttribute("aria-label", "보증 항목 장착");
   if(!pickModal.classList.contains("show")){
     pickLast = document.activeElement;
     pickModal.classList.add("show");
@@ -4246,9 +4419,15 @@ function openPickTarget(key){
   }
   /* 그 항목이 실제로 걸리는 소재만 보여 줍니다 */
   var own = fitOwned(key);
+  var cur = (S.items[key] && S.items[key] !== 1) ? findChar(S.items[key]) : null;
   var html = '<button class="x" type="button" id="pickX" aria-label="닫기">&times;</button>'+
     '<div class="pkhead"><p class="pkt">'+it.tag+' · '+it.scope+'</p>'+
-    '<p class="pka">어느 소재에 걸어 둘까요?</p></div>';
+    '<p class="pka">'+(cur ? '어느 소재로 옮길까요?' : '어느 소재에 걸어 둘까요?')+'</p>'+
+    '<p class="pkfx">걸어 둔 소재는 <b>부품을 만들어도 창고에서 닳지 않습니다.</b> '+
+      '한 장만 쥐고 있으면 그 강종이 들어가는 칸을 몇 번이든 채웁니다. '+
+      '언제든 옮기거나 뗄 수 있습니다.</p>'+
+    (cur ? '<p class="pknow">지금 <b>'+cur.fam.name+' '+cur.g+'</b>에 걸려 있습니다</p>' : '')+
+    '</div>';
   if(!own.length){
     html += '<p class="pkempty">이 항목을 걸 수 있는 소재가 없습니다.<br>'+
             '<b>'+it.scope+'</b>에만 걸립니다.</p>';
@@ -4262,9 +4441,19 @@ function openPickTarget(key){
     });
     html += '</div>';
   }
+  if(cur) html += '<button class="btn-sub cut" id="pkOff" type="button">떼어 두기 · 아무 데도 걸지 않음</button>';
   html += '<div class="pkres" id="pkres"></div>';
   pickBox.innerHTML = html;
   document.getElementById("pickX").addEventListener("click", closePick);
+  var off = document.getElementById("pkOff");
+  if(off) off.addEventListener("click", function(){
+    unequip(key);
+    var r = document.getElementById("pkres");
+    r.className = "pkres ok";
+    r.innerHTML = '<b>떼어 뒀습니다</b><p>아이템은 그대로 있습니다. 다시 걸 소재를 고르세요.</p>';
+    refresh();
+    openPickTarget(key);
+  });
   var bs = pickBox.querySelectorAll(".pk");
   for(var i=0;i<bs.length;i++){
     (function(b){
@@ -4274,7 +4463,8 @@ function openPickTarget(key){
         var r = document.getElementById("pkres");
         r.className = "pkres ok";
         r.innerHTML = '<b>'+c.fam.name+' '+c.g+'에 걸었습니다</b>'+
-          '<p>이 소재로 회신됩니다. 도감 카드에도 함께 보입니다.</p>'+
+          '<p>이제 <b>'+c.g+'</b>는 부품을 만들어도 창고에서 닳지 않습니다. '+
+          '한 장만 쥐고 있으면 됩니다. 도감 카드에도 함께 보입니다.</p>'+
           '<button class="btn-sub cut" id="pkDone2" type="button">확인</button>';
         document.getElementById("pkDone2").addEventListener("click", closePick);
         var a = pickBox.querySelectorAll(".pk");
@@ -4310,6 +4500,13 @@ function refresh(){
                  '<span class="sn">열 장 한 번에 · LV3 이상 한 장 보장</span>'+
                  '<span class="sc">스크랩 '+Math.min(have, SCRAP_TEN)+' / '+SCRAP_TEN+'</span>';
   bt.disabled = !tenReady();
+  var be = document.getElementById("btnExch");
+  var cheap = EXCH[1];
+  be.innerHTML = '<span class="sl">스크랩 교환소</span>'+
+                 '<span class="sn">모자란 강종 한 장을 확정으로 · 도감에 올린 것만</span>'+
+                 '<span class="sc">보유 스크랩 '+have+'장 · LV1 '+EXCH[1]+' / LV2 '+EXCH[2]+
+                   ' / LV3 '+EXCH[3]+' / LV4 '+EXCH[4]+'</span>';
+  be.disabled = have < cheap || exchList().length === 0;
   tick();
   renderBell();
   renderBackupWhen();
@@ -4446,6 +4643,29 @@ document.getElementById("btnPull").addEventListener("click", function(){
 /* ── 10연 출하 ─────────────────────────────────────
    스크랩 스무 장으로 열 장을 한 번에. LV3 이상 한 장은 보장합니다.
    하루 뽑기 몫과는 따로 돕니다. 코일 열 개가 한 로트로 나오는 셈입니다. */
+/* ── 스크랩 교환소 ────────────────────────────────
+   뽑기는 확률이라, 딱 한 강종이 모자라 부품이 막히는 일이 생깁니다.
+   도감에 이미 올린 강종이면 스크랩을 내고 한 장 받아 갈 수 있습니다.
+   아직 못 본 강종은 팔지 않습니다. 처음 만나는 건 뽑기의 몫입니다.    */
+var EXCH = {1:2, 2:3, 3:6, 4:12};
+function exchCost(id){
+  var c = findChar(id);
+  return EXCH[c ? lvOf(c) : 1] || 5;
+}
+/* 살 수 있는 것 — 도감에 올렸고 뽑기 풀에 있는 강종 */
+function exchList(){
+  return POOL.filter(function(id){ return !!S.owned[id]; });
+}
+function buyCard(id){
+  if(!S.owned[id]) return false;
+  var cost = exchCost(id);
+  if(S.scrap < cost) return false;
+  S.scrap -= cost;
+  addStock(id, 1);
+  save();
+  return true;
+}
+
 var SCRAP_TEN = 20, TEN_N = 10;
 function tenReady(){ return S.scrap >= SCRAP_TEN && POOL.length > 0; }
 
@@ -4523,6 +4743,7 @@ document.getElementById("btnScrap4").addEventListener("click", function(){
   scrapPull(4, SCRAP_LV4);
 });
 document.getElementById("btnTen").addEventListener("click", tenPull);
+document.getElementById("btnExch").addEventListener("click", openExch);
 
 var qState = null;
 
