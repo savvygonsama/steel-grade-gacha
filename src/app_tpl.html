@@ -3326,7 +3326,7 @@ var NOTICES = [
              '<div class="nprice">' +
                '<span><u>LV1</u><b>2</b><em>스크랩</em></span>' +
                '<span><u>LV2</u><b>3</b><em>스크랩</em></span>' +
-               '<span><u>LV3</u><b>6</b><em>스크랩</em></span>' +
+               '<span><u>LV3</u><b>8</b><em>스크랩</em></span>' +
                '<span><u>LV4</u><b>12</b><em>스크랩</em></span>' +
              '</div>' +
              '<p class="nnt">모자란 한 장을 <em>확정으로</em></p>' +
@@ -4686,7 +4686,7 @@ document.getElementById("btnPull").addEventListener("click", function(){
    뽑기는 확률이라, 딱 한 강종이 모자라 부품이 막히는 일이 생깁니다.
    도감에 이미 올린 강종이면 스크랩을 내고 한 장 받아 갈 수 있습니다.
    아직 못 본 강종은 팔지 않습니다. 처음 만나는 건 뽑기의 몫입니다.    */
-var EXCH = {1:2, 2:3, 3:6, 4:12};
+var EXCH = {1:2, 2:3, 3:8, 4:12};
 function exchCost(id){
   var c = findChar(id);
   return EXCH[c ? lvOf(c) : 1] || 5;
