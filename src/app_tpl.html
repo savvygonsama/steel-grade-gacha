@@ -733,15 +733,47 @@
   .nt .k{display:block;font-family:Archivo,sans-serif;font-size:9.5px;font-weight:800;
          letter-spacing:.3em;color:var(--ochre)}
   .nt h3{margin:6px 0 0;font-size:21px;font-weight:700;letter-spacing:-.02em;padding-right:40px}
-  .nt .sub{margin:7px 0 0;font-size:12.5px;color:var(--ink-2);line-height:1.75}
-  .nt .nlist{margin:16px 0 0;padding:0;list-style:none;counter-reset:n}
-  .nt .nlist li{position:relative;counter-increment:n;padding:0 0 0 30px;margin-bottom:15px}
-  .nt .nlist li::before{content:counter(n,decimal-leading-zero);position:absolute;left:0;top:1px;
-                        font-family:Archivo,sans-serif;font-size:12px;font-weight:800;
+  .nt .sub{margin:8px 0 0;font-size:14.5px;color:var(--ink-2);line-height:1.7}
+  .nt .nlist{margin:20px 0 0;padding:0;list-style:none;counter-reset:n}
+  .nt .nlist li{position:relative;counter-increment:n;padding:0 0 0 34px;margin-bottom:24px}
+  .nt .nlist li::before{content:counter(n,decimal-leading-zero);position:absolute;left:0;top:2px;
+                        font-family:Archivo,sans-serif;font-size:15px;font-weight:800;
                         color:var(--ochre);letter-spacing:.04em}
-  .nt .nlist b{display:block;font-size:14px;font-weight:700;letter-spacing:-.01em}
-  .nt .nlist p{margin:5px 0 0;font-size:12.5px;color:var(--ink-2);line-height:1.8}
-  .nt .nlist p b{display:inline;font-size:inherit;color:var(--ink)}
+  .nt .nlist b{display:block;font-size:17.5px;font-weight:700;letter-spacing:-.02em;
+               line-height:1.35}
+  .nt .nlist p{margin:7px 0 0;font-size:15px;color:var(--ink);line-height:1.72}
+  .nt .nlist p b{display:inline;font-size:inherit;color:var(--ochre)}
+
+  /* 공지 속 도식 — 글보다 그림으로 */
+  .nfig{margin:11px 0 0;padding:13px 13px 12px;background:var(--f2);
+        border:1px solid var(--edge);--cut:12px;clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),
+             calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+  .nfig .nrow{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap}
+  .nfig .nbx{display:inline-block;padding:8px 12px 9px;background:var(--f1);
+             border:1px solid var(--edge);font-size:14px;font-weight:700;line-height:1.25;
+             text-align:center;--cut:9px;clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),
+             calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+  .nfig .nbx.on{border-color:var(--ok);color:var(--ok);background:rgba(46,125,83,.1)}
+  .nfig .nbx i{display:block;font-style:normal;font-family:"IBM Plex Mono",monospace;
+               font-size:10.5px;font-weight:500;color:var(--ink-3);margin-top:2px}
+  .nfig .nbx.on i{color:var(--ok);opacity:.85}
+  .nfig .nar{font-family:"IBM Plex Mono",monospace;font-size:17px;color:var(--ochre);
+             font-weight:600}
+  .nfig .nnt{margin:10px 0 0;text-align:center;font-size:13.5px;font-weight:600;
+             color:var(--ink);line-height:1.5}
+  .nfig .nnt em{font-style:normal;color:var(--ok)}
+
+  /* 교환소 값표 */
+  .nprice{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .nprice span{display:block;padding:9px 4px 10px;background:var(--f1);
+               border:1px solid var(--edge);text-align:center;--cut:8px;clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),
+             calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+  .nprice span u{display:block;text-decoration:none;font-family:"IBM Plex Mono",monospace;
+                 font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.06em}
+  .nprice span b{display:block;font-family:"IBM Plex Mono",monospace;font-size:19px;
+                 font-weight:700;color:var(--ochre);line-height:1.2;margin-top:3px}
+  .nprice span em{display:block;font-style:normal;font-size:10px;color:var(--ink-3);
+                  margin-top:1px}
   .nevent{margin:4px 0 0;padding:12px 14px;background:var(--f2);
           border-left:3px solid var(--ochre);--cut:11px}
   .nevent .el{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:9.5px;
@@ -3271,27 +3303,34 @@ var NOTICES = [
     until: Date.UTC(2026, 10, 30, 15, 0, 0),   /* 2026-12-01 00:00 KST */
     ev:    false,                              /* 행사가 아니라 기능 안내입니다 */
     title: "자재 운영 개선",
-    lead:  "두 대째부터 차가 안 나온다는 말이 많았습니다. 창고 쪽을 두 군데 고쳤습니다. 보증 항목이 하는 일이 생기고, 스크랩 교환소가 열립니다.",
+    lead:  "창고 쪽에 두 가지가 더해집니다.",
     items: [
-      {h:"보증 항목을 걸어 둔 소재는 닳지 않습니다",
-       p:"지금까지 보증 항목은 카드에 그림만 붙고 하는 일이 없었습니다. 이제 <b>걸어 둔 소재는 " +
-         "부품을 만들어도 창고에서 빠지지 않습니다.</b> 한 장만 쥐고 있으면 그 강종이 들어가는 " +
-         "칸을 몇 번이든 채웁니다. 선행개발 큐피와 같은 방식입니다.<br>" +
-         "그래서 <b>한 번 걸고 끝나는 물건이 아닙니다.</b> 차 한 대를 끝낼 때마다 막히는 자리가 " +
-         "달라지니, 그때그때 옮겨 거세요. 아이템 칸을 누르면 지금 걸린 자리가 보이고 " +
-         "<b>다른 소재로 옮기거나 떼어 둘 수 있습니다.</b> 떼어도 항목은 그대로 남습니다."},
-      {h:"스크랩 교환소를 엽니다",
-       p:"뽑기는 확률이라, 딱 한 강종이 모자라 부품이 막히는 일이 생깁니다. 이제 스크랩을 내고 " +
-         "<b>원하는 강종 한 장</b>을 창고에 받아 갈 수 있습니다.<br>" +
-         "· <b>LV1 2장 · LV2 3장 · LV3 6장 · LV4 12장</b><br>" +
-         "· <b>도감에 이미 올린 강종만</b> 팝니다. 처음 만나는 건 뽑기의 몫입니다<br>" +
-         "· 지금 <b>막힌 칸이 기다리는 강종</b>에는 붉은 표가 붙고 맨 앞으로 옵니다<br>" +
-         "크랭크샤프트는 비조질 한 장으로만, 연료탱크는 편면도금 한 장으로만 채워집니다. " +
-         "그런 자리가 열일곱 군데라 두 번째 차부터는 운만으로 끝나지 않았습니다."},
-      {h:"차고는 여덟 대까지 갑니다",
-       p:"차고 안내가 「고른 한 대만 열리고 나머지 일곱은 잠긴 채로 남습니다」로 돼 있었습니다. " +
-         "<b>잘못된 안내였습니다.</b> 부품 서른다섯 개를 다시 만들면 다음 한 대를 받고, " +
-         "그렇게 <b>여덟 대까지</b> 갑니다. 문구를 고쳤습니다. 헷갈리게 해서 죄송합니다."}
+      {h:"걸어 둔 소재는 닳지 않습니다",
+       p:"보증 항목을 건 소재는 부품을 만들어도 <b>창고에서 빠지지 않습니다.</b> 한 장만 쥐고 있으면 됩니다.<br>" +
+         "아이템 칸을 누르면 <b>옮기거나 뗄 수 있습니다.</b> 막히는 자리로 그때그때 옮겨 거세요.",
+       fig:'<div class="nfig">' +
+             '<div class="nrow">' +
+               '<span class="nbx">보증 항목<i>걸어 둔다</i></span>' +
+               '<span class="nar">+</span>' +
+               '<span class="nbx on">소재 1장<i>창고</i></span>' +
+               '<span class="nar">→</span>' +
+               '<span class="nbx on">부품 ∞<i>몇 개든</i></span>' +
+             '</div>' +
+             '<p class="nnt">카드는 <em>그대로 남습니다</em></p>' +
+           '</div>'},
+
+      {h:"스크랩 교환소",
+       p:"스크랩을 내고 <b>원하는 강종 한 장</b>을 받습니다. 도감에 올린 강종만 팝니다.<br>" +
+         "지금 <b>막힌 칸</b>이 기다리는 강종은 붉은 표가 붙어 맨 앞에 옵니다.",
+       fig:'<div class="nfig">' +
+             '<div class="nprice">' +
+               '<span><u>LV1</u><b>2</b><em>스크랩</em></span>' +
+               '<span><u>LV2</u><b>3</b><em>스크랩</em></span>' +
+               '<span><u>LV3</u><b>6</b><em>스크랩</em></span>' +
+               '<span><u>LV4</u><b>12</b><em>스크랩</em></span>' +
+             '</div>' +
+             '<p class="nnt">모자란 한 장을 <em>확정으로</em></p>' +
+           '</div>'}
     ]
   }
 ];
@@ -3341,7 +3380,7 @@ function openNotice(){
     '<h3>' + NOTICE.title + '</h3>' +
     '<p class="sub">' + NOTICE.lead + '</p><ol class="nlist">';
   NOTICE.items.forEach(function(it){
-    h += '<li><b>' + it.h + '</b><p>' + it.p + '</p></li>';
+    h += '<li><b>' + it.h + '</b><p>' + it.p + '</p>' + (it.fig || '') + '</li>';
   });
   h += '</ol>';
   if(promoOn() || promoSoon()){
